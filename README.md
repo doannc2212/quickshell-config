@@ -14,7 +14,11 @@ feel free to look around, borrow ideas, or use it as a starting point for your o
 - app launcher (rofi drun-style)
 - notification popups (dunst-style)
 
-<img width="1920" height="132" alt="image" src="https://github.com/user-attachments/assets/9a390e6c-cc2b-4da0-91c8-230254aa7f9b" />
+<img width="1920" height="111" alt="image" src="https://github.com/user-attachments/assets/06d824ae-cf21-4c78-919c-1604f1c0a2dc" />
+<br/>
+<img width="405" height="146" alt="image" src="https://github.com/user-attachments/assets/40c9b11a-abf2-4e9b-bf85-ec44ea67d69d" />
+<br/>
+<img width="601" height="495" alt="image" src="https://github.com/user-attachments/assets/40c46613-dc24-461a-9075-33ffea221716" />
 
 
 ## structure
