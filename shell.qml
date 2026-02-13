@@ -10,4 +10,5 @@ import "components"
 Scope {
   Bar {}
   AppLauncher {}
+  NotificationPopup {}
 }
