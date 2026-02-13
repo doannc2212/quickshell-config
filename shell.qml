@@ -9,4 +9,5 @@ import "components"
 
 Scope {
   Bar {}
+  AppLauncher {}
 }

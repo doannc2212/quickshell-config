@@ -1,6 +1,6 @@
-# my quickshell bar
+# my quickshell config
 
-this is my personal status bar config for [Hyprland](https://hyprland.org/), built with [Quickshell](https://quickshell.outfoxxed.me/). it uses the Tokyo Night color scheme because i like it.
+this is my personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/) — a status bar and an app launcher. it uses the Tokyo Night color scheme because i like it.
 
 feel free to look around, borrow ideas, or use it as a starting point for your own. no pressure — it's just how i like my desktop.
 
@@ -11,16 +11,19 @@ feel free to look around, borrow ideas, or use it as a starting point for your o
 - active window title
 - system info (cpu, memory, network, battery, temperature)
 - system tray
+- app launcher (rofi drun-style)
+
 <img width="1920" height="132" alt="image" src="https://github.com/user-attachments/assets/9a390e6c-cc2b-4da0-91c8-230254aa7f9b" />
 
 
 ## structure
 
 ```
-shell.qml              # entry point
-components/Bar.qml     # bar layout, one per screen
-widgets/               # ui pieces (clock, workspaces, etc.)
-services/              # data providers (polling system info, time)
+shell.qml                       # entry point
+components/Bar.qml              # bar layout, one per screen
+components/AppLauncher.qml      # app launcher overlay
+widgets/                        # ui pieces (clock, workspaces, etc.)
+services/                       # data providers (polling system info, time)
 ```
 
 ## dependencies
@@ -37,6 +40,25 @@ quickshell
 ```
 
 it reads from `~/.config/quickshell/` by default.
+
+## app launcher
+
+a rofi drun-style launcher built into the shell. toggle it via IPC:
+
+```bash
+qs ipc call launcher toggle
+```
+
+bind it in `hyprland.conf`:
+
+```
+bind = SUPER, D, exec, qs ipc call launcher toggle
+```
+
+features:
+- searches by app name, description, keywords, and categories
+- keyboard navigation (arrow keys, enter, escape)
+- click backdrop to dismiss
 
 ## tweaking
 
