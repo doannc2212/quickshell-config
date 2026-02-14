@@ -12,6 +12,22 @@ Singleton {
     readonly property int count: themes.length
     readonly property string currentName: current.name
     readonly property string currentFamily: current.family
+    readonly property bool isDark: !isLightColor(current.bgBase)
+
+    function isLightColor(hex) {
+        hex = hex.toString().replace("#", "");
+        var r = parseInt(hex.substr(0, 2), 16);
+        var g = parseInt(hex.substr(2, 2), 16);
+        var b = parseInt(hex.substr(4, 2), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5;
+    }
+
+    function applySystemColorScheme(dark) {
+        colorSchemeProc.command = ["gsettings", "set",
+            "org.gnome.desktop.interface", "color-scheme",
+            dark ? "prefer-dark" : "prefer-light"];
+        colorSchemeProc.running = true;
+    }
 
     // Reactive color properties — same API as before
     readonly property color bgBase:       current.bgBase
@@ -46,6 +62,7 @@ Singleton {
                 "echo " + index + " > $HOME/.config/quickshell/theme.conf"];
             saveProc.running = true;
             applyKittyTheme(themes[index]);
+            applySystemColorScheme(!isLightColor(themes[index].bgBase));
         }
     }
 
@@ -117,6 +134,7 @@ Singleton {
 
     Process { id: saveProc; running: false }
     Process { id: kittyProc; running: false }
+    Process { id: colorSchemeProc; running: false }
 
     Process {
         id: loadProc
@@ -128,6 +146,7 @@ Singleton {
                 if (!isNaN(idx) && idx >= 0 && idx < root.themes.length) {
                     root.currentIndex = idx;
                     root.applyKittyTheme(root.themes[idx]);
+                    root.applySystemColorScheme(!root.isLightColor(root.themes[idx].bgBase));
                 }
             }
         }
