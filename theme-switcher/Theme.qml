@@ -221,6 +221,42 @@ Singleton {
             accentGreen: "#40a02b", accentOrange: "#fe640b", accentRed: "#d20f39"
         },
 
+        // ── Zen Browser ────────────────────────────────
+        {
+            name: "Dark", family: "Zen",
+            bgBase: "#191B22", bgSurface: "#282A33", bgHover: "#2E3039",
+            bgSelected: "#363842", bgBorder: "#3E4050",
+            textPrimary: "#D4D5DB", textSecondary: "#9B9CA6", textMuted: "#5C5D6B",
+            accentPrimary: "#5B9EF4", accentCyan: "#65C3D8",
+            accentGreen: "#7EC87E", accentOrange: "#E0A060", accentRed: "#E05858"
+        },
+        {
+            name: "Light", family: "Zen",
+            bgBase: "#EAEBEF", bgSurface: "#DBDCE2", bgHover: "#D2D3DA",
+            bgSelected: "#C5C6D0", bgBorder: "#B8B9C2",
+            textPrimary: "#282A33", textSecondary: "#505260", textMuted: "#7E8090",
+            accentPrimary: "#2870D8", accentCyan: "#0E88A0",
+            accentGreen: "#3A7840", accentOrange: "#B87020", accentRed: "#D42040"
+        },
+
+        // ── Arc Browser ────────────────────────────────
+        {
+            name: "Dark", family: "Arc",
+            bgBase: "#1C1B2E", bgSurface: "#282740", bgHover: "#232238",
+            bgSelected: "#363454", bgBorder: "#413F60",
+            textPrimary: "#E2DDEF", textSecondary: "#AEA8C4", textMuted: "#6E6890",
+            accentPrimary: "#9580FF", accentCyan: "#80D8FF",
+            accentGreen: "#6FDDA8", accentOrange: "#FFB066", accentRed: "#FF6E7A"
+        },
+        {
+            name: "Light", family: "Arc",
+            bgBase: "#F4F0F8", bgSurface: "#E8E2F0", bgHover: "#DDD6EA",
+            bgSelected: "#D0C8E0", bgBorder: "#C5BCCF",
+            textPrimary: "#2A2440", textSecondary: "#504868", textMuted: "#8078A0",
+            accentPrimary: "#6E50D0", accentCyan: "#1090C0",
+            accentGreen: "#389060", accentOrange: "#D07020", accentRed: "#D02050"
+        },
+
         // ── Beared ───────────────────────────────────
         {
             name: "Arc", family: "Beared",
