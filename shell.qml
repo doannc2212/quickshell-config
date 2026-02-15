@@ -5,11 +5,14 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
-import "components"
+import "bar"
+import "app-launcher"
+import "notifications"
+import "theme-switcher"
 
 Scope {
-  Bar {}
-  AppLauncher {}
-  NotificationPopup {}
-  ThemeSwitcher {}
+  ThemeSwitcher { id: ts }
+  Bar { theme: ts.theme }
+  AppLauncher { theme: ts.theme }
+  NotificationPopup { theme: ts.theme }
 }

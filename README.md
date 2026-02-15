@@ -1,6 +1,6 @@
 # my quickshell config
 
-this is my personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/) — a status bar, app launcher, and notification daemon. it uses the Tokyo Night color scheme because i like it.
+this is my personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/) — a status bar, app launcher, and notification daemon with a built-in theme switcher. modular architecture where each piece works independently.
 
 feel free to look around, borrow ideas, or use it as a starting point for your own. no pressure — it's just how i like my desktop.
 
@@ -21,18 +21,35 @@ feel free to look around, borrow ideas, or use it as a starting point for your o
 <br/>
 <img width="601" height="495" alt="image" src="https://github.com/user-attachments/assets/40c46613-dc24-461a-9075-33ffea221716" />
 
-
 ## structure
 
 ```
-shell.qml                       # entry point
-components/Bar.qml              # bar layout, one per screen
-components/AppLauncher.qml      # app launcher overlay
-components/NotificationPopup.qml # notification popups
-components/ThemeSwitcher.qml    # theme picker overlay
-widgets/                        # ui pieces (clock, workspaces, etc.)
-services/                       # data providers (time, system info, notifications, theme)
+shell.qml                           # assembler — wires modules together
+bar/
+  Bar.qml                           # status bar layout (one per screen)
+  DefaultTheme.qml                  # standalone fallback colors
+  TimeWidget.qml                    # clock & date
+  WorkspaceIndicator.qml            # hyprland workspaces
+  WindowTitle.qml                   # active window
+  SystemInfoWidget.qml              # cpu/mem/net/bat/temp
+  SystemTrayWidget.qml              # system tray icons
+  Time.qml                          # singleton — clock data
+  SystemInfo.qml                    # singleton — cpu/mem/net/bat/temp
+app-launcher/
+  AppLauncher.qml                   # rofi drun-style overlay
+  DefaultTheme.qml
+notifications/
+  NotificationPopup.qml             # dunst-style popups
+  NotificationService.qml           # notification daemon (singleton)
+  DefaultTheme.qml
+theme-switcher/
+  ThemeSwitcher.qml                 # theme picker overlay
+  Theme.qml                         # 15 themes + persistence + kitty sync
+  DefaultTheme.qml
+docs/                               # PlantUML architecture diagrams
 ```
+
+each module is self-contained — no module imports another. `shell.qml` wires the shared theme from `theme-switcher/` into all modules via property injection. remove any module and the rest still work.
 
 ## dependencies
 
@@ -115,10 +132,28 @@ features:
 - click backdrop to dismiss
 - selected theme persists across restarts (saved to `~/.config/quickshell/theme.conf`)
 - all components update instantly with smooth color transitions
+- syncs with kitty terminal and system dark/light mode
 
 ## tweaking
 
-- **colors** — all colors are centralized in `services/Theme.qml`. select a theme via the theme switcher, or add your own by appending to the `themes` array.
+- **colors** — all colors are in `theme-switcher/Theme.qml`. pick a theme via the switcher, or add your own by appending to the `themes` array.
 - **font** — search for `"Hack Nerd Font"` and swap it with yours.
-- **layout** — rearrange widgets in `components/Bar.qml`.
-- **polling rate** — change the interval in `services/SystemInfo.qml` (default 2s).
+- **layout** — rearrange widgets in `bar/Bar.qml`.
+- **polling rate** — change the interval in `bar/SystemInfo.qml` (default 2s).
+- **adding a module** — create a folder with an entry QML file + `DefaultTheme.qml`, add `property var theme: DefaultTheme {}`, wire it in `shell.qml`.
+
+## docs
+
+architecture diagrams live in `docs/` as PlantUML files:
+
+| Diagram | What it shows |
+|---------|---------------|
+| `architecture-overview.puml` | full system: modules, dependencies, theme wiring |
+| `theme-flow.puml` | how theme propagates from singleton through all modules |
+| `folder-structure.puml` | directory tree with role annotations |
+| `module-contracts.puml` | class diagram of DefaultTheme, Theme, entry points, widgets |
+| `ipc-commands.puml` | sequence diagram of all IPC commands |
+| `data-flow.puml` | how data flows from system/D-Bus/Hyprland into widgets |
+| `plug-unplug.puml` | activity diagram showing module independence |
+
+render with `plantuml docs/*.puml` or paste into [plantuml.com](https://www.plantuml.com/plantuml/uml/).

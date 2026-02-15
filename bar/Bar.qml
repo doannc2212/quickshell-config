@@ -1,10 +1,11 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
-import "../widgets"
-import "../services"
 
 Scope {
+  id: root
+  property var theme: DefaultTheme {}
+
   Variants {
     model: Quickshell.screens
 
@@ -19,7 +20,7 @@ Scope {
       }
 
       implicitHeight: 32
-      color: Theme.bgBase
+      color: root.theme.bgBase
 
       RowLayout {
         anchors.fill: parent
@@ -27,19 +28,20 @@ Scope {
         anchors.rightMargin: 10
         spacing: 8
 
-        TimeWidget {}
-        WorkspaceIndicator {}
+        TimeWidget { theme: root.theme }
+        WorkspaceIndicator { theme: root.theme }
 
         Item {
           Layout.fillWidth: true
         }
 
-        SystemInfoWidget {}
-        SystemTrayWidget {}
+        SystemInfoWidget { theme: root.theme }
+        SystemTrayWidget { theme: root.theme }
       }
 
       // Center window title independently
       WindowTitle {
+        theme: root.theme
         anchors.centerIn: parent
       }
     }

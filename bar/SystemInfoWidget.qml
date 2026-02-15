@@ -1,7 +1,14 @@
 import QtQuick
-import "../services"
 
 Row {
+  property var theme
+
+  readonly property color batteryColor: {
+    if (SystemInfo.batteryLevelRaw > 20) return theme.batteryGood;
+    if (SystemInfo.batteryLevelRaw > 10) return theme.batteryWarning;
+    return theme.batteryCritical;
+  }
+
   spacing: 4
 
   // CPU
@@ -9,7 +16,7 @@ Row {
     height: 24
     width: cpuContent.width + 12
     radius: 12
-    color: Theme.bgSurface
+    color: theme.bgSurface
 
     Row {
       id: cpuContent
@@ -19,14 +26,14 @@ Row {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰻠"
-        color: Theme.accentOrange
+        color: theme.accentOrange
         font.pixelSize: 14
         font.family: "Hack Nerd Font"
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.cpuUsage
-        color: Theme.textPrimary
+        color: theme.textPrimary
         font.pixelSize: 11
         font.family: "Hack Nerd Font"
       }
@@ -38,7 +45,7 @@ Row {
     height: 24
     width: memContent.width + 12
     radius: 12
-    color: Theme.bgSurface
+    color: theme.bgSurface
 
     Row {
       id: memContent
@@ -48,14 +55,14 @@ Row {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰍛"
-        color: Theme.accentCyan
+        color: theme.accentCyan
         font.pixelSize: 14
         font.family: "Hack Nerd Font"
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.memoryUsage
-        color: Theme.textPrimary
+        color: theme.textPrimary
         font.pixelSize: 11
         font.family: "Hack Nerd Font"
       }
@@ -67,7 +74,7 @@ Row {
     height: 24
     width: netContent.width + 12
     radius: 12
-    color: Theme.bgSurface
+    color: theme.bgSurface
 
     Row {
       id: netContent
@@ -77,14 +84,14 @@ Row {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰛳"
-        color: Theme.accentGreen
+        color: theme.accentGreen
         font.pixelSize: 14
         font.family: "Hack Nerd Font"
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.networkInfo
-        color: Theme.textPrimary
+        color: theme.textPrimary
         font.pixelSize: 11
         font.family: "Hack Nerd Font"
       }
@@ -96,7 +103,7 @@ Row {
     height: 24
     width: battContent.width + 12
     radius: 12
-    color: Theme.bgSurface
+    color: theme.bgSurface
 
     Row {
       id: battContent
@@ -106,14 +113,14 @@ Row {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.batteryIcon
-        color: SystemInfo.batteryColor
+        color: batteryColor
         font.pixelSize: 14
         font.family: "Hack Nerd Font"
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.batteryLevel
-        color: Theme.textPrimary
+        color: theme.textPrimary
         font.pixelSize: 11
         font.family: "Hack Nerd Font"
       }
@@ -125,7 +132,7 @@ Row {
     height: 24
     width: tempContent.width + 12
     radius: 12
-    color: Theme.bgSurface
+    color: theme.bgSurface
 
     Row {
       id: tempContent
@@ -135,14 +142,14 @@ Row {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰔏"
-        color: Theme.accentRed
+        color: theme.accentRed
         font.pixelSize: 14
         font.family: "Hack Nerd Font"
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
         text: SystemInfo.temperature
-        color: Theme.textPrimary
+        color: theme.textPrimary
         font.pixelSize: 11
         font.family: "Hack Nerd Font"
       }

@@ -3,10 +3,10 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
-import "../services"
 
 Scope {
     id: root
+    property var theme: Theme
 
     IpcHandler {
         target: "theme"
@@ -14,7 +14,7 @@ Scope {
         function toggle(): void {
             themePanel.visible = !themePanel.visible;
             if (themePanel.visible) {
-                selectedIndex = Theme.currentIndex;
+                selectedIndex = root.theme.currentIndex;
                 themeList.positionViewAtIndex(selectedIndex, ListView.Center);
                 themeList.forceActiveFocus();
             }
@@ -49,7 +49,7 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: Theme.bgOverlay
+                color: root.theme.bgOverlay
             }
         }
 
@@ -60,8 +60,8 @@ Scope {
             width: 620
             height: 520
             radius: 16
-            color: Theme.bgBase
-            border.color: Theme.bgBorder
+            color: root.theme.bgBase
+            border.color: root.theme.bgBorder
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -75,7 +75,7 @@ Scope {
                 // Header
                 Text {
                     text: "  Theme Switcher"
-                    color: Theme.accentPrimary
+                    color: root.theme.accentPrimary
                     font.pixelSize: 14
                     font.family: "Hack Nerd Font"
                     font.bold: true
@@ -85,8 +85,8 @@ Scope {
 
                 // Theme count
                 Text {
-                    text: Theme.count + " themes — " + Theme.currentFamily + " " + Theme.currentName
-                    color: Theme.textMuted
+                    text: root.theme.count + " themes — " + root.theme.currentFamily + " " + root.theme.currentName
+                    color: root.theme.textMuted
                     font.pixelSize: 11
                     font.family: "Hack Nerd Font"
 
@@ -98,7 +98,7 @@ Scope {
                     id: themeList
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    model: Theme.themes
+                    model: root.theme.themes
                     clip: true
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
@@ -109,7 +109,7 @@ Scope {
 
                     highlight: Rectangle {
                         radius: 8
-                        color: Theme.bgSelected
+                        color: root.theme.bgSelected
 
                         Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -117,7 +117,7 @@ Scope {
                             width: 3
                             height: 24
                             radius: 2
-                            color: Theme.accentPrimary
+                            color: root.theme.accentPrimary
                             anchors.left: parent.left
                             anchors.leftMargin: 2
                             anchors.verticalCenter: parent.verticalCenter
@@ -137,7 +137,7 @@ Scope {
                             anchors.leftMargin: 8
                             anchors.verticalCenter: parent.verticalCenter
                             text: section.toUpperCase()
-                            color: Theme.textMuted
+                            color: root.theme.textMuted
                             font.pixelSize: 10
                             font.family: "Hack Nerd Font"
                             font.bold: true
@@ -155,7 +155,7 @@ Scope {
                         width: themeList.width
                         height: 44
                         radius: 8
-                        color: hoverArea.containsMouse && root.selectedIndex !== index ? Theme.bgHover : "transparent"
+                        color: hoverArea.containsMouse && root.selectedIndex !== index ? root.theme.bgHover : "transparent"
 
                         Behavior on color { ColorAnimation { duration: 100 } }
 
@@ -168,7 +168,7 @@ Scope {
                             // Theme name
                             Text {
                                 text: delegateRoot.modelData.name
-                                color: root.selectedIndex === delegateRoot.index ? Theme.textPrimary : Theme.textSecondary
+                                color: root.selectedIndex === delegateRoot.index ? root.theme.textPrimary : root.theme.textSecondary
                                 font.pixelSize: 13
                                 font.family: "Hack Nerd Font"
                                 font.bold: root.selectedIndex === delegateRoot.index
@@ -198,7 +198,7 @@ Scope {
                                         height: 14
                                         radius: 7
                                         color: modelData
-                                        border.color: Theme.bgBorder
+                                        border.color: root.theme.bgBorder
                                         border.width: 1
                                     }
                                 }
@@ -206,11 +206,11 @@ Scope {
 
                             // Checkmark for active theme
                             Text {
-                                text: Theme.currentIndex === delegateRoot.index ? "" : ""
-                                color: Theme.accentGreen
+                                text: root.theme.currentIndex === delegateRoot.index ? "" : ""
+                                color: root.theme.accentGreen
                                 font.pixelSize: 14
                                 font.family: "Hack Nerd Font"
-                                visible: Theme.currentIndex === delegateRoot.index
+                                visible: root.theme.currentIndex === delegateRoot.index
                                 Layout.alignment: Qt.AlignVCenter
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -223,7 +223,7 @@ Scope {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                Theme.setTheme(delegateRoot.index);
+                                root.theme.setTheme(delegateRoot.index);
                                 themePanel.visible = false;
                             }
                             onEntered: root.selectedIndex = delegateRoot.index
@@ -243,7 +243,7 @@ Scope {
                             themeList.positionViewAtIndex(root.selectedIndex, ListView.Contain);
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             event.accepted = true;
-                            Theme.setTheme(root.selectedIndex);
+                            root.theme.setTheme(root.selectedIndex);
                             themePanel.visible = false;
                         }
                     }
@@ -257,31 +257,31 @@ Scope {
                     Row {
                         spacing: 4
                         Rectangle {
-                            width: hintNav.width + 8; height: 18; radius: 4; color: Theme.bgSurface
+                            width: hintNav.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
                             Behavior on color { ColorAnimation { duration: 150 } }
-                            Text { id: hintNav; anchors.centerIn: parent; text: "↑↓"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+                            Text { id: hintNav; anchors.centerIn: parent; text: "↑↓"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
                         }
-                        Text { text: "navigate"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "navigate"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
                     }
 
                     Row {
                         spacing: 4
                         Rectangle {
-                            width: hintEnter.width + 8; height: 18; radius: 4; color: Theme.bgSurface
+                            width: hintEnter.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
                             Behavior on color { ColorAnimation { duration: 150 } }
-                            Text { id: hintEnter; anchors.centerIn: parent; text: "⏎"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+                            Text { id: hintEnter; anchors.centerIn: parent; text: "⏎"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
                         }
-                        Text { text: "select"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "select"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
                     }
 
                     Row {
                         spacing: 4
                         Rectangle {
-                            width: hintEsc.width + 8; height: 18; radius: 4; color: Theme.bgSurface
+                            width: hintEsc.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
                             Behavior on color { ColorAnimation { duration: 150 } }
-                            Text { id: hintEsc; anchors.centerIn: parent; text: "esc"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+                            Text { id: hintEsc; anchors.centerIn: parent; text: "esc"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
                         }
-                        Text { text: "close"; color: Theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "close"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
                     }
 
                     Item { Layout.fillWidth: true }

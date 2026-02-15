@@ -10,9 +10,9 @@ Singleton {
   property string cpuUsage: "0%"
   property string memoryUsage: "0%"
   property string networkInfo: "7F-Internal"
+  property int batteryLevelRaw: 0
   property string batteryLevel: "0%"
   property string batteryIcon: "󰂎"
-  property color batteryColor: Theme.batteryGood
   property string temperature: "0°C"
 
   // CPU Usage
@@ -64,8 +64,9 @@ Singleton {
     stdout: StdioCollector {
       onStreamFinished: {
         const level = parseInt(text.trim())
+        root.batteryLevelRaw = level
         root.batteryLevel = level + "%"
-        
+
         // Set icon based on level
         if (level >= 90) root.batteryIcon = "󰁹"
         else if (level >= 80) root.batteryIcon = "󰂂"
@@ -77,11 +78,6 @@ Singleton {
         else if (level >= 20) root.batteryIcon = "󰁼"
         else if (level >= 10) root.batteryIcon = "󰁻"
         else root.batteryIcon = "󰁺"
-        
-        // Set color based on level
-        if (level > 20) root.batteryColor = Theme.batteryGood
-        else if (level > 10) root.batteryColor = Theme.batteryWarning
-        else root.batteryColor = Theme.batteryCritical
       }
     }
   }

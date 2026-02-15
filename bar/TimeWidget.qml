@@ -1,11 +1,12 @@
 import QtQuick
-import "../services"
 
 Rectangle {
+  property var theme
+
   height: 24
   width: timeDate.width + 16
   radius: 12
-  color: Theme.bgSurface
+  color: theme.bgSurface
 
   Row {
     id: timeDate
@@ -15,7 +16,7 @@ Rectangle {
     Text {
       anchors.verticalCenter: parent.verticalCenter
       text: ""
-      color: Theme.accentPrimary
+      color: theme.accentPrimary
       font.pixelSize: 14
       font.family: "Hack Nerd Font"
     }
@@ -23,7 +24,7 @@ Rectangle {
     Text {
       anchors.verticalCenter: parent.verticalCenter
       text: Time.timeString
-      color: Theme.textPrimary
+      color: theme.textPrimary
       font.pixelSize: 12
       font.family: "Hack Nerd Font"
     }
@@ -31,7 +32,7 @@ Rectangle {
     Text {
       anchors.verticalCenter: parent.verticalCenter
       text: Time.dateString
-      color: Theme.textSecondary
+      color: theme.textSecondary
       font.pixelSize: 12
       font.family: "Hack Nerd Font"
     }
