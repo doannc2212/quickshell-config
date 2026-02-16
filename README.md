@@ -193,4 +193,11 @@ Scope {
 
 ## acknowledgments
 
-this wouldn't exist without the wonderful work behind [Quickshell](https://quickshell.outfoxxed.me/), [Hyprland](https://hyprland.org/), and the theme communities — [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme), [Catppuccin](https://github.com/catppuccin/catppuccin), [Beared Theme](https://marketplace.visualstudio.com/items?itemName=BeardedBear.beardedtheme), and [MonkeyType](https://monkeytype.com/). thank you all.
+this wouldn't exist without the wonderful work behind [Quickshell](https://quickshell.outfoxxed.me/), [Hyprland](https://hyprland.org/), and the theme creators:
+
+- [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme) by enkia — 4 themes (Night, Storm, Moon, Light)
+- [Catppuccin](https://github.com/catppuccin/catppuccin) by the Catppuccin team — 4 themes (Mocha, Macchiato, Frappe, Latte)
+- [Beared Theme](https://marketplace.visualstudio.com/items?itemName=BeardedBear.beardedtheme) by BeardedBear — 7 themes
+- [MonkeyType](https://monkeytype.com/) — 187 community themes. colors were derived from MonkeyType's theme palette. all credit goes to the original theme creators and the MonkeyType community contributors.
+
+thank you all.
