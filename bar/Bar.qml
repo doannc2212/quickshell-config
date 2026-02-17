@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Hyprland
@@ -9,6 +10,12 @@ import Quickshell.Services.Mpris
 Scope {
   id: root
   property var theme: DefaultTheme {}
+  property bool barVisible: true
+
+  IpcHandler {
+    target: "bar"
+    function toggle(): void { root.barVisible = !root.barVisible; }
+  }
 
   Variants {
     model: Quickshell.screens
@@ -16,6 +23,7 @@ Scope {
     PanelWindow {
       required property var modelData
       screen: modelData
+      visible: root.barVisible
 
       anchors {
         top: true
@@ -78,24 +86,44 @@ Scope {
             model: Hyprland.workspaces
 
             Rectangle {
+              id: wsPill
               required property var modelData
+              property bool urgentBlink: false
+
               width: modelData.focused ? 32 : 24
               height: 24
               radius: 12
-              color: modelData.focused ? root.theme.accentPrimary : root.theme.bgSurface
+              color: modelData.focused ? root.theme.accentPrimary :
+                     modelData.urgent && urgentBlink ? root.theme.accentRed : root.theme.bgSurface
+
+              Behavior on color {
+                ColorAnimation { duration: 150 }
+              }
+
+              SequentialAnimation {
+                loops: Animation.Infinite
+                running: wsPill.modelData.urgent && !wsPill.modelData.focused
+
+                PropertyAction { target: wsPill; property: "urgentBlink"; value: true }
+                PauseAnimation { duration: 500 }
+                PropertyAction { target: wsPill; property: "urgentBlink"; value: false }
+                PauseAnimation { duration: 500 }
+
+                onStopped: wsPill.urgentBlink = false
+              }
 
               Text {
                 anchors.centerIn: parent
-                text: modelData.id
-                color: modelData.focused ? root.theme.bgBase : root.theme.textPrimary
+                text: wsPill.modelData.id
+                color: wsPill.modelData.focused ? root.theme.bgBase : root.theme.textPrimary
                 font.pixelSize: 11
                 font.family: "Hack Nerd Font"
-                font.bold: modelData.focused
+                font.bold: wsPill.modelData.focused
               }
 
               MouseArea {
                 anchors.fill: parent
-                onClicked: modelData.activate()
+                onClicked: wsPill.modelData.activate()
               }
 
               Behavior on width {
@@ -107,52 +135,6 @@ Scope {
 
         Item {
           Layout.fillWidth: true
-        }
-
-        // Media indicator pill
-        Rectangle {
-          height: 24
-          width: mediaPill.width + 16
-          radius: 12
-          color: root.theme.bgSurface
-          visible: Mpris.players.count > 0
-
-          Row {
-            id: mediaPill
-            anchors.centerIn: parent
-            spacing: 6
-
-            Text {
-              anchors.verticalCenter: parent.verticalCenter
-              text: Mpris.players.count > 0 && Mpris.players.values[0] && Mpris.players.values[0].isPlaying ? "󰐊" : "󰏤"
-              color: root.theme.accentPrimary
-              font.pixelSize: 14
-              font.family: "Hack Nerd Font"
-            }
-
-            Text {
-              anchors.verticalCenter: parent.verticalCenter
-              text: {
-                if (Mpris.players.count === 0) return "";
-                const p = Mpris.players.values[0];
-                if (!p) return "";
-                const parts = [];
-                if (p.trackArtist) parts.push(p.trackArtist);
-                if (p.trackTitle) parts.push(p.trackTitle);
-                const str = parts.join(" - ");
-                return str.length > 30 ? str.substring(0, 30) + "..." : str;
-              }
-              color: root.theme.textPrimary
-              font.pixelSize: 11
-              font.family: "Hack Nerd Font"
-            }
-          }
-
-          MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Quickshell.execDetached({ command: ["sh", "-c", "qs ipc call media toggle"] })
-          }
         }
 
         // System Info
