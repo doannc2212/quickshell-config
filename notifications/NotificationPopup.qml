@@ -285,31 +285,45 @@ Scope {
                 }
               }
 
-              // Progress bar (expire timer)
+              // Auto-close timer (decoupled from animation for reliability)
+              Timer {
+                id: autoCloseTimer
+                interval: {
+                  if (notifCard.modelData.urgency === NotificationUrgency.Critical) return 0;
+                  if (notifCard.modelData.expireTimeout > 0) return notifCard.modelData.expireTimeout * 1000;
+                  return 5000;
+                }
+                running: notifCard.modelData.urgency !== NotificationUrgency.Critical && interval > 0
+                repeat: false
+                onTriggered: NotificationService.expire(notifCard.modelData)
+              }
+
+              // Progress bar (visual only)
               Rectangle {
                 Layout.fillWidth: true
                 height: 2
                 radius: 1
                 color: root.theme.bgSurface
                 Layout.topMargin: 2
+                visible: notifCard.modelData.urgency !== NotificationUrgency.Critical
 
                 Rectangle {
                   id: progressBar
                   height: parent.height
+                  width: parent.width
                   radius: 1
-                  color: modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
+                  color: notifCard.modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
                   opacity: 0.6
 
-                  NumberAnimation on width {
-                    from: progressBar.parent.width
-                    to: 0
-                    duration: {
-                      if (notifCard.modelData.urgency === NotificationUrgency.Critical) return 0;
-                      if (notifCard.modelData.expireTimeout > 0) return notifCard.modelData.expireTimeout * 1000;
-                      return 5000;
-                    }
+                  SequentialAnimation {
                     running: notifCard.modelData.urgency !== NotificationUrgency.Critical
-                    onFinished: NotificationService.expire(notifCard.modelData)
+                    PauseAnimation { duration: 50 }
+                    NumberAnimation {
+                      target: progressBar
+                      property: "width"
+                      to: 0
+                      duration: autoCloseTimer.interval > 0 ? autoCloseTimer.interval : 5000
+                    }
                   }
                 }
               }

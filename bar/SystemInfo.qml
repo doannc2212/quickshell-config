@@ -85,7 +85,7 @@ Singleton {
   // Temperature
   Process {
     id: tempProc
-    command: ["sh", "-c", "sensors 2>/dev/null | grep -i 'Package id 0' | awk '{print $4}' | sed 's/+//;s/°C/°C/' || echo 'N/A'"]
+    command: ["sh", "-c", "sensors 2>/dev/null | grep -E 'Package id 0|Tctl' | head -1 | awk '{print $2}' | sed 's/+//' || echo 'N/A'"]
     running: true
 
     stdout: StdioCollector {

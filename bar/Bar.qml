@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Quickshell.Hyprland
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
+import Quickshell.Io
 import Quickshell.Services.Mpris
 Scope {
   id: root
@@ -198,6 +199,20 @@ Scope {
 
         Item {
           Layout.fillWidth: true
+          implicitHeight: parent.height
+
+          Text {
+            Accessible.role: Accessible.StaticText
+            Accessible.name: "Active window: " + text
+            text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
+            color: root.theme.textPrimary
+            font.pixelSize: 13
+            font.family: "Hack Nerd Font"
+            elide: Text.ElideRight
+            width: Math.min(implicitWidth, parent.width)
+            clip: true
+            anchors.centerIn: parent
+          }
         }
 
         // System Info
@@ -433,19 +448,6 @@ Scope {
         }
       }
 
-      // Center window title independently
-      Text {
-        Accessible.role: Accessible.StaticText
-        Accessible.name: "Active window: " + text
-        text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
-        color: root.theme.textPrimary
-        font.pixelSize: 13
-        font.family: "Hack Nerd Font"
-        elide: Text.ElideRight
-        width: Math.min(implicitWidth, 400)
-        clip: true
-        anchors.centerIn: parent
-      }
     }
   }
 }
