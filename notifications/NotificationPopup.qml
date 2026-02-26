@@ -65,17 +65,27 @@ Scope {
             required property Notification modelData
             required property int index
 
+            // Null-safe computed properties — modelData can be null during delegate destruction
+            readonly property int notifUrgency: modelData ? modelData.urgency : NotificationUrgency.Normal
+            readonly property string notifAppIcon: modelData ? (modelData.appIcon || "") : ""
+            readonly property string notifAppName: modelData ? (modelData.appName || "") : ""
+            readonly property string notifSummary: modelData ? (modelData.summary || "") : ""
+            readonly property string notifBody: modelData ? (modelData.body || "") : ""
+            readonly property string notifImage: modelData ? (modelData.image || "") : ""
+            readonly property var notifActions: modelData ? modelData.actions : []
+            readonly property int notifExpireTimeout: modelData ? modelData.expireTimeout : 0
+
             Accessible.role: Accessible.StaticText
-            Accessible.name: (modelData.urgency === NotificationUrgency.Critical ? "[Critical] " :
-                             modelData.urgency === NotificationUrgency.Low ? "[Low] " : "") +
-                             (modelData.appName || "Notification") + ": " + (modelData.summary || "")
+            Accessible.name: (notifUrgency === NotificationUrgency.Critical ? "[Critical] " :
+                             notifUrgency === NotificationUrgency.Low ? "[Low] " : "") +
+                             (notifAppName || "Notification") + ": " + (notifSummary || "")
 
             Layout.fillWidth: true
             Layout.preferredHeight: cardContent.implicitHeight + 24
             radius: 12
             color: root.theme.bgBase
-            border.color: modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical :
-                          modelData.urgency === NotificationUrgency.Low ? root.theme.urgencyLow : root.theme.bgBorder
+            border.color: notifUrgency === NotificationUrgency.Critical ? root.theme.urgencyCritical :
+                          notifUrgency === NotificationUrgency.Low ? root.theme.urgencyLow : root.theme.bgBorder
             border.width: 1
             opacity: 1
             clip: true
@@ -101,8 +111,8 @@ Scope {
               anchors.left: parent.left
               anchors.leftMargin: 6
               anchors.verticalCenter: parent.verticalCenter
-              color: modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical :
-                     modelData.urgency === NotificationUrgency.Low ? root.theme.urgencyLow : root.theme.urgencyNormal
+              color: notifCard.notifUrgency === NotificationUrgency.Critical ? root.theme.urgencyCritical :
+                     notifCard.notifUrgency === NotificationUrgency.Low ? root.theme.urgencyLow : root.theme.urgencyNormal
             }
 
             ColumnLayout {
@@ -127,34 +137,34 @@ Scope {
 
                   IconImage {
                     anchors.centerIn: parent
-                    source: Quickshell.iconPath(notifCard.modelData.appIcon, true)
+                    source: Quickshell.iconPath(notifCard.notifAppIcon, true)
                     implicitSize: 16
-                    visible: notifCard.modelData.appIcon !== ""
+                    visible: notifCard.notifAppIcon !== ""
                   }
 
                   Text {
                     anchors.centerIn: parent
-                    visible: notifCard.modelData.appIcon === ""
+                    visible: notifCard.notifAppIcon === ""
                     text: {
-                      if (notifCard.modelData.urgency === NotificationUrgency.Critical) return "󰀦";
-                      if (notifCard.modelData.appName.toLowerCase().includes("discord")) return "󰙯";
-                      if (notifCard.modelData.appName.toLowerCase().includes("firefox")) return "󰈹";
-                      if (notifCard.modelData.appName.toLowerCase().includes("chrome")) return "";
-                      if (notifCard.modelData.appName.toLowerCase().includes("telegram")) return "";
-                      if (notifCard.modelData.appName.toLowerCase().includes("spotify")) return "󰓇";
-                      if (notifCard.modelData.appName.toLowerCase().includes("terminal") ||
-                          notifCard.modelData.appName.toLowerCase().includes("kitty") ||
-                          notifCard.modelData.appName.toLowerCase().includes("alacritty")) return "";
+                      if (notifCard.notifUrgency === NotificationUrgency.Critical) return "󰀦";
+                      if (notifCard.notifAppName.toLowerCase().includes("discord")) return "󰙯";
+                      if (notifCard.notifAppName.toLowerCase().includes("firefox")) return "󰈹";
+                      if (notifCard.notifAppName.toLowerCase().includes("chrome")) return "";
+                      if (notifCard.notifAppName.toLowerCase().includes("telegram")) return "";
+                      if (notifCard.notifAppName.toLowerCase().includes("spotify")) return "󰓇";
+                      if (notifCard.notifAppName.toLowerCase().includes("terminal") ||
+                          notifCard.notifAppName.toLowerCase().includes("kitty") ||
+                          notifCard.notifAppName.toLowerCase().includes("alacritty")) return "";
                       return "󰂚";
                     }
-                    color: notifCard.modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
+                    color: notifCard.notifUrgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
                     font.pixelSize: 14
                     font.family: "Hack Nerd Font"
                   }
                 }
 
                 Text {
-                  text: modelData.appName || "Notification"
+                  text: notifCard.notifAppName || "Notification"
                   color: root.theme.textMuted
                   font.pixelSize: 11
                   font.family: "Hack Nerd Font"
@@ -186,14 +196,14 @@ Scope {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: NotificationService.dismiss(notifCard.modelData)
+                    onClicked: if (notifCard.modelData) NotificationService.dismiss(notifCard.modelData)
                   }
                 }
               }
 
               // Summary (title)
               Text {
-                text: modelData.summary || ""
+                text: notifCard.notifSummary || ""
                 color: root.theme.textPrimary
                 font.pixelSize: 13
                 font.family: "Hack Nerd Font"
@@ -207,10 +217,10 @@ Scope {
               RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                visible: (modelData.body || "") !== "" || modelData.image !== ""
+                visible: notifCard.notifBody !== "" || notifCard.notifImage !== ""
 
                 Text {
-                  text: modelData.body || ""
+                  text: notifCard.notifBody || ""
                   color: root.theme.textSecondary
                   font.pixelSize: 12
                   font.family: "Hack Nerd Font"
@@ -228,11 +238,11 @@ Scope {
                   radius: 6
                   color: "transparent"
                   clip: true
-                  visible: notifCard.modelData.image !== ""
+                  visible: notifCard.notifImage !== ""
 
                   Image {
                     anchors.fill: parent
-                    source: notifCard.modelData.image
+                    source: notifCard.notifImage
                     fillMode: Image.PreserveAspectCrop
                     sourceSize.width: 48
                     sourceSize.height: 48
@@ -244,17 +254,19 @@ Scope {
               RowLayout {
                 Layout.fillWidth: true
                 spacing: 6
-                visible: modelData.actions.length > 0
+                visible: notifCard.notifActions.length > 0
 
                 Repeater {
-                  model: notifCard.modelData.actions
+                  model: notifCard.notifActions
 
                   Rectangle {
                     id: actionBtn
                     required property NotificationAction modelData
 
+                    readonly property string actionLabel: modelData ? (modelData.text || "") : ""
+
                     Accessible.role: Accessible.Button
-                    Accessible.name: modelData.text
+                    Accessible.name: actionLabel
 
                     Layout.preferredHeight: 26
                     Layout.preferredWidth: actionText.width + 16
@@ -268,7 +280,7 @@ Scope {
                     Text {
                       id: actionText
                       anchors.centerIn: parent
-                      text: actionBtn.modelData.text
+                      text: actionBtn.actionLabel
                       color: root.theme.accentPrimary
                       font.pixelSize: 11
                       font.family: "Hack Nerd Font"
@@ -279,7 +291,7 @@ Scope {
                       anchors.fill: parent
                       hoverEnabled: true
                       cursorShape: Qt.PointingHandCursor
-                      onClicked: NotificationService.invokeAction(notifCard.modelData, actionBtn.modelData)
+                      onClicked: if (notifCard.modelData && actionBtn.modelData) NotificationService.invokeAction(notifCard.modelData, actionBtn.modelData)
                     }
                   }
                 }
@@ -289,13 +301,13 @@ Scope {
               Timer {
                 id: autoCloseTimer
                 interval: {
-                  if (notifCard.modelData.urgency === NotificationUrgency.Critical) return 0;
-                  if (notifCard.modelData.expireTimeout > 0) return notifCard.modelData.expireTimeout * 1000;
+                  if (notifCard.notifUrgency === NotificationUrgency.Critical) return 0;
+                  if (notifCard.notifExpireTimeout > 0) return notifCard.notifExpireTimeout * 1000;
                   return 5000;
                 }
-                running: notifCard.modelData.urgency !== NotificationUrgency.Critical && interval > 0
+                running: notifCard.notifUrgency !== NotificationUrgency.Critical && interval > 0
                 repeat: false
-                onTriggered: NotificationService.expire(notifCard.modelData)
+                onTriggered: if (notifCard.modelData) NotificationService.expire(notifCard.modelData)
               }
 
               // Progress bar (visual only)
@@ -305,18 +317,18 @@ Scope {
                 radius: 1
                 color: root.theme.bgSurface
                 Layout.topMargin: 2
-                visible: notifCard.modelData.urgency !== NotificationUrgency.Critical
+                visible: notifCard.notifUrgency !== NotificationUrgency.Critical
 
                 Rectangle {
                   id: progressBar
                   height: parent.height
                   width: parent.width
                   radius: 1
-                  color: notifCard.modelData.urgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
+                  color: notifCard.notifUrgency === NotificationUrgency.Critical ? root.theme.urgencyCritical : root.theme.urgencyNormal
                   opacity: 0.6
 
                   SequentialAnimation {
-                    running: notifCard.modelData.urgency !== NotificationUrgency.Critical
+                    running: notifCard.notifUrgency !== NotificationUrgency.Critical
                     PauseAnimation { duration: 50 }
                     NumberAnimation {
                       target: progressBar
@@ -334,7 +346,7 @@ Scope {
               anchors.fill: parent
               anchors.topMargin: 30
               z: -1
-              onClicked: NotificationService.dismiss(notifCard.modelData)
+              onClicked: if (notifCard.modelData) NotificationService.dismiss(notifCard.modelData)
               cursorShape: Qt.PointingHandCursor
             }
           }
