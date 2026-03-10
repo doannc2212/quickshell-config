@@ -1,5 +1,5 @@
 # my quickshell config
-a personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/). status bar, app launcher, notification daemon, wallpaper manager, and a theme switcher with 206 themes. each piece is its own module and works independently, so feel free to grab only the parts you need.
+a personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/). status bar, app launcher, notification daemon, media controls, OSD, wallpaper manager, and a theme switcher with 206 themes. each piece is its own module and works independently, so feel free to grab only the parts you need.
 
 i hope it's helpful as a starting point or reference. if you have questions or ideas, don't hesitate to open an issue — happy to chat.
 
@@ -13,12 +13,13 @@ i hope it's helpful as a starting point or reference. if you have questions or i
 
 | Module | What it does |
 |--------|-------------|
-| **Bar** | clock, hyprland workspaces, active window title, system info (cpu/mem/net/bat/temp), system tray, media indicator |
+| **Bar** | clock, workspaces, active window title, volume, brightness, network, battery, system tray, now-playing indicator |
 | **App Launcher** | rofi drun-style application launcher |
 | **Notifications** | dunst-style notification daemon with popups |
+| **Media Control** | popup overlay with album art, playback controls, progress bar, and volume slider |
+| **OSD** | on-screen display for volume and brightness changes, auto-hides |
 | **Theme Switcher** | 206 themes across 6 families, persists across restarts |
 | **Wallpaper Manager** | grid picker for wallpapers, preview, supports hyprpaper and swww |
-| **Plugins** | drop-in `.qml` plugin system |
 
 ## prerequisites
 
@@ -30,8 +31,10 @@ these are needed regardless of which modules you use:
 
 optional, depending on which modules you use:
 
-- `hyprpaper` or `swww` — for wallpaper manager
-- system monitoring tools: `top`, `free`, `nmcli`, `sensors`, `/sys/class/power_supply/`
+- `brightnessctl` — for brightness display and control in the bar and OSD
+- `nmcli` — for wifi network info in the bar
+- `/sys/class/power_supply/` — for battery info (standard on most laptops)
+- `hyprpaper` or `swww` — for the wallpaper manager
 
 ## installing everything
 
@@ -50,20 +53,25 @@ each module is self-contained in its own folder with a `DefaultTheme.qml` fallba
 
 ### bar
 
-the status bar — clock, workspaces, window title, system info, system tray, and media indicator.
+the status bar — clock, workspaces, window title, volume, brightness, network, battery, system tray, and a now-playing indicator.
 
-**extra dependencies:** `top`, `free`, `nmcli`, `sensors`, `/sys/class/power_supply/`
+**extra dependencies:** `brightnessctl`, `nmcli`, `/sys/class/power_supply/`
 
 1. copy `bar/` into your quickshell config directory
 2. in your `shell.qml`, add:
 
 ```qml
-import "bar" as Bar
+import "bar"
 
-Bar.Bar {}
+Bar {}
 ```
 
 the bar will use its built-in Tokyo Night Night colors by default. to wire it up with the theme switcher instead, pass `theme: yourThemeObject`.
+
+you can also toggle the bar via IPC:
+```
+qs ipc call bar toggle
+```
 
 ### app launcher
 
@@ -73,9 +81,9 @@ a rofi drun-style launcher overlay. searches by name, description, keywords, and
 2. in your `shell.qml`, add:
 
 ```qml
-import "app-launcher" as Launcher
+import "app-launcher"
 
-Launcher.AppLauncher {}
+AppLauncher {}
 ```
 
 3. bind a key in `hyprland.conf`:
@@ -94,9 +102,9 @@ a built-in notification daemon — replaces dunst/mako. popups appear in the top
 2. in your `shell.qml`, add:
 
 ```qml
-import "notifications" as Notif
+import "notifications"
 
-Notif.NotificationPopup {}
+NotificationPopup {}
 ```
 
 3. optionally bind IPC commands in `hyprland.conf`:
@@ -115,6 +123,43 @@ features:
 - max 5 visible notifications at a time
 - do not disturb mode
 
+### media control
+
+a popup overlay that shows the active MPRIS player with album art, track info, playback controls, a seekable progress bar, and a volume slider.
+
+1. copy `media/` into your quickshell config directory
+2. in your `shell.qml`, add:
+
+```qml
+import "media"
+
+MediaControl {}
+```
+
+3. bind keys in `hyprland.conf`:
+
+```
+bind = SUPER, M, exec, qs ipc call media toggle
+bind = , XF86AudioPlay, exec, qs ipc call media play_pause
+```
+
+### osd
+
+a vertical pill overlay that appears on the right side of the screen when volume or brightness changes, then auto-hides after 1.5 seconds.
+
+**extra dependencies:** `brightnessctl`
+
+1. copy `osd/` into your quickshell config directory
+2. in your `shell.qml`, add:
+
+```qml
+import "osd"
+
+OSD {}
+```
+
+no IPC needed — it reacts automatically to PipeWire volume changes and backlight changes.
+
 ### theme switcher
 
 a theme picker overlay with 206 themes across 6 families. selected theme persists across restarts and syncs with kitty terminal and system dark/light mode.
@@ -123,9 +168,9 @@ a theme picker overlay with 206 themes across 6 families. selected theme persist
 2. in your `shell.qml`, create the switcher and wire its theme into other modules:
 
 ```qml
-import "theme-switcher" as TS
+import "theme-switcher"
 
-TS.ThemeSwitcher {
+ThemeSwitcher {
     id: ts
 }
 
@@ -158,9 +203,9 @@ a grid-based wallpaper picker that scans `~/Pictures/Wallpapers` and `~/Pictures
 2. in your `shell.qml`, add:
 
 ```qml
-import "wallpaper" as WP
+import "wallpaper"
 
-WP.WallpaperManager {}
+WallpaperManager {}
 ```
 
 3. bind a key in `hyprland.conf`:
@@ -169,26 +214,13 @@ WP.WallpaperManager {}
 bind = SUPER, W, exec, qs ipc call wallpaper toggle
 ```
 
-### plugins
-
-drop `.qml` files into `~/.config/quickshell/plugins/` and they'll be loaded automatically on startup. each plugin should be a `Scope` with `property var theme` to receive theme injection.
-
-example plugin (`plugins/my-widget.qml`):
-```qml
-import Quickshell
-
-Scope {
-    property var theme
-    // your custom widget here
-}
-```
-
 ## tweaking
 
 - **colors** — all colors live in `theme-switcher/Theme.qml`. pick a theme via the switcher, or add your own by appending to the `themes` array.
 - **font** — search for `"Hack Nerd Font"` in the QML files and swap it with yours.
 - **layout** — rearrange widgets in `bar/Bar.qml`.
 - **polling rate** — change the interval in `bar/SystemInfo.qml` (default 2s).
+- **extra bar widgets** — CPU, memory, and temperature widgets are already written in `bar/Bar.qml` but commented out. uncomment them if you'd like them back (requires `top`, `free`, and `sensors`).
 - **adding a module** — create a folder with an entry QML file + `DefaultTheme.qml`, add `property var theme: DefaultTheme {}`, and wire it in `shell.qml`.
 
 ## acknowledgments
