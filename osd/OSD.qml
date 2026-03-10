@@ -15,8 +15,9 @@ Scope {
   property bool volumeMuted: false
   property real brightnessValue: 0
   property real maxBrightness: 1
+  property bool _brightnessReady: false
 
-  // Track PipeWire default sink
+  // PipeWire tracking
   PwObjectTracker {
     objects: [Pipewire.defaultAudioSink]
   }
@@ -27,19 +28,23 @@ Scope {
     function onVolumeChanged() {
       root.volumeValue = Pipewire.defaultAudioSink.audio.volume;
       root.showVolume = true;
-      root.showBrightness = false;
-      hideTimer.restart();
+      volumeHideTimer.restart();
     }
 
     function onMutedChanged() {
       root.volumeMuted = Pipewire.defaultAudioSink.audio.muted;
       root.showVolume = true;
-      root.showBrightness = false;
-      hideTimer.restart();
+      volumeHideTimer.restart();
     }
   }
 
-  // Brightness monitoring — use Process to read fresh value (FileView.text() is stale on sysfs)
+  Timer {
+    id: volumeHideTimer
+    interval: 1500
+    onTriggered: root.showVolume = false
+  }
+
+  // Brightness monitoring
   FileView {
     id: brightnessFile
     path: ""
@@ -56,24 +61,23 @@ Scope {
         const val = parseInt(text.trim());
         if (!isNaN(val) && root.maxBrightness > 0) {
           root.brightnessValue = val / root.maxBrightness;
-          root.showBrightness = true;
-          root.showVolume = false;
-          hideTimer.restart();
+          if (root._brightnessReady) {
+            root.showBrightness = true;
+            brightnessHideTimer.restart();
+          }
+          root._brightnessReady = true;
         }
       }
     }
   }
 
-  // Discover backlight path and max brightness
   Process {
     id: backlightDiscovery
-    command: ["sh", "-c", "path=$(ls -d /sys/class/backlight/*/brightness 2>/dev/null | head -1); if [ -n \"$path\" ]; then echo \"$path\"; cat \"${path%brightness}max_brightness\"; fi"]
+    command: ["sh", "-c", "p=$(ls -d /sys/class/backlight/*/brightness 2>/dev/null | head -1); [ -n \"$p\" ] && echo \"$p\" && cat \"${p%brightness}max_brightness\""]
     running: true
     stdout: StdioCollector {
       onStreamFinished: {
-        const raw = text;
-        if (!raw) return;
-        const lines = raw.trim().split("\n");
+        const lines = text.trim().split("\n");
         if (lines.length >= 2) {
           const max = parseInt(lines[1]);
           if (!isNaN(max) && max > 0) root.maxBrightness = max;
@@ -84,27 +88,20 @@ Scope {
     }
   }
 
-  // Auto-hide timer
   Timer {
-    id: hideTimer
+    id: brightnessHideTimer
     interval: 1500
-    onTriggered: {
-      root.showVolume = false;
-      root.showBrightness = false;
-    }
+    onTriggered: root.showBrightness = false
   }
-
-  property bool osdVisible: showVolume || showBrightness
 
   Variants {
     model: Quickshell.screens
 
     PanelWindow {
-      id: osdWindow
       required property var modelData
       screen: modelData
 
-      visible: root.osdVisible
+      visible: root.showVolume || root.showBrightness
       focusable: false
       color: "transparent"
 
@@ -113,108 +110,154 @@ Scope {
       WlrLayershell.namespace: "quickshell-osd"
 
       exclusionMode: ExclusionMode.Ignore
-
       mask: Region {}
 
       anchors {
-        bottom: true
-        left: true
         right: true
+        top: true
+        bottom: true
       }
 
-      implicitHeight: 80
+      implicitWidth: 70
 
-      // OSD pill
-      Rectangle {
-        id: osdPill
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-        width: 300
-        height: 40
-        radius: 20
-        color: root.theme.bgBase
-        border.color: root.theme.bgBorder
-        border.width: 1
-        opacity: root.osdVisible ? 1 : 0
+      Column {
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 12
 
-        Behavior on opacity {
-          NumberAnimation { duration: 150 }
-        }
+        // Volume pill — vertical
+        Rectangle {
+          id: volumePill
+          width: 36
+          height: 200
+          radius: 25
+          color: root.theme.bgBase
+          border.color: root.theme.bgBorder
+          border.width: 1
+          opacity: root.showVolume ? 1 : 0
 
-        Accessible.role: Accessible.ProgressBar
-        Accessible.name: {
-          if (root.showVolume) {
-            if (root.volumeMuted) return "Volume: muted";
-            return "Volume: " + Math.round(root.volumeValue * 100) + "%";
-          }
-          return "Brightness: " + Math.round(root.brightnessValue * 100) + "%";
-        }
+          Behavior on opacity { NumberAnimation { duration: 150 } }
 
-        RowLayout {
-          anchors.fill: parent
-          anchors.leftMargin: 16
-          anchors.rightMargin: 16
-          spacing: 12
+          Accessible.role: Accessible.ProgressBar
+          Accessible.name: root.volumeMuted ? "Volume: muted" : "Volume: " + Math.round(root.volumeValue * 100) + "%"
 
-          // Icon
-          Text {
-            text: {
-              if (root.showVolume) {
-                if (root.volumeMuted) return "󰖁";
-                if (root.volumeValue <= 0) return "󰖁";
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.topMargin: 12
+            anchors.bottomMargin: 12
+            anchors.leftMargin: 0
+            anchors.rightMargin: 0
+            spacing: 8
+
+            Text {
+              text: root.volumeMuted ? "Mute" : Math.round(root.volumeValue * 100) + "%"
+              color: root.theme.textSecondary
+              font.pixelSize: 10
+              font.family: "Hack Nerd Font"
+              Layout.alignment: Qt.AlignHCenter
+            }
+
+            Rectangle {
+              Layout.fillHeight: true
+              Layout.alignment: Qt.AlignHCenter
+              width: 8
+              radius: 4
+              color: root.theme.bgSurface
+              border.color: root.theme.bgBorder
+              border.width: 1
+              clip: true
+
+              Rectangle {
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 2
+                height: Math.max(0, (parent.height - 4) * Math.max(0, Math.min(1, root.volumeMuted ? 0 : root.volumeValue)))
+                radius: 3
+                color: root.volumeMuted ? root.theme.textMuted : root.theme.accentPrimary
+
+                Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+              }
+            }
+
+            Text {
+              text: {
+                if (root.volumeMuted || root.volumeValue <= 0) return "󰖁";
                 if (root.volumeValue < 0.33) return "󰕿";
                 if (root.volumeValue < 0.66) return "󰖀";
                 return "󰕾";
               }
-              return "󰃠";
+              color: root.volumeMuted ? root.theme.textMuted : root.theme.accentPrimary
+              font.pixelSize: 15
+              font.family: "Hack Nerd Font"
+              Layout.alignment: Qt.AlignHCenter
             }
-            color: root.showVolume ? root.theme.accentPrimary : root.theme.accentOrange
-            font.pixelSize: 18
-            font.family: "Hack Nerd Font"
-            Layout.alignment: Qt.AlignVCenter
           }
+        }
 
-          // Progress bar
-          Rectangle {
-            Layout.fillWidth: true
-            height: 6
-            radius: 3
-            color: root.theme.bgSurface
-            Layout.alignment: Qt.AlignVCenter
+        // Brightness pill — vertical
+        Rectangle {
+          id: brightnessPill
+          width: 36
+          height: 200
+          radius: 25
+          color: root.theme.bgBase
+          border.color: root.theme.bgBorder
+          border.width: 1
+          opacity: root.showBrightness ? 1 : 0
+
+          Behavior on opacity { NumberAnimation { duration: 150 } }
+
+          Accessible.role: Accessible.ProgressBar
+          Accessible.name: "Brightness: " + Math.round(root.brightnessValue * 100) + "%"
+
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.topMargin: 12
+            anchors.bottomMargin: 12
+            anchors.leftMargin: 0
+            anchors.rightMargin: 0
+            spacing: 8
+
+            Text {
+              text: Math.round(root.brightnessValue * 100) + "%"
+              color: root.theme.textSecondary
+              font.pixelSize: 10
+              font.family: "Hack Nerd Font"
+              Layout.alignment: Qt.AlignHCenter
+            }
 
             Rectangle {
-              width: {
-                const val = root.showVolume ? root.volumeValue : root.brightnessValue;
-                return parent.width * Math.max(0, Math.min(1, val));
-              }
-              height: parent.height
-              radius: 3
-              color: root.showVolume
-                ? (root.volumeMuted ? root.theme.textMuted : root.theme.accentPrimary)
-                : root.theme.accentOrange
+              Layout.fillHeight: true
+              Layout.alignment: Qt.AlignHCenter
+              width: 8
+              radius: 4
+              color: root.theme.bgSurface
+              border.color: root.theme.bgBorder
+              border.width: 1
+              clip: true
 
-              Behavior on width {
-                NumberAnimation { duration: 100 }
+              Rectangle {
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 2
+                height: Math.max(0, (parent.height - 4) * Math.max(0, Math.min(1, root.brightnessValue)))
+                radius: 3
+                color: root.theme.accentOrange
+
+                Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
               }
             }
-          }
 
-          // Percentage text
-          Text {
-            text: {
-              if (root.showVolume) {
-                if (root.volumeMuted) return "Mute";
-                return Math.round(root.volumeValue * 100) + "%";
-              }
-              return Math.round(root.brightnessValue * 100) + "%";
+            Text {
+              text: "󰃠"
+              color: root.theme.accentOrange
+              font.pixelSize: 15
+              font.family: "Hack Nerd Font"
+              Layout.alignment: Qt.AlignHCenter
             }
-            color: root.theme.textSecondary
-            font.pixelSize: 12
-            font.family: "Hack Nerd Font"
-            Layout.preferredWidth: 40
-            horizontalAlignment: Text.AlignRight
-            Layout.alignment: Qt.AlignVCenter
           }
         }
       }

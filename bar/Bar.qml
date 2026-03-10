@@ -6,6 +6,7 @@ import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 Scope {
   id: root
   property var theme: DefaultTheme {}
@@ -24,6 +25,56 @@ Scope {
   IpcHandler {
     target: "bar"
     function toggle(): void { root.barVisible = !root.barVisible; }
+  }
+
+  PwObjectTracker {
+    objects: [Pipewire.defaultAudioSink]
+  }
+
+  // Brightness state
+  property real brightnessValue: 0
+  property real brightnessMax: 1
+
+  FileView {
+    id: brightnessFile
+    path: ""
+    watchChanges: true
+    onFileChanged: brightnessReadProc.running = true
+  }
+
+  Process {
+    id: brightnessReadProc
+    command: ["brightnessctl", "get"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const val = parseInt(text.trim());
+        if (!isNaN(val) && root.brightnessMax > 0)
+          root.brightnessValue = val / root.brightnessMax;
+      }
+    }
+  }
+
+  Process {
+    id: brightnessSetProc
+    running: false
+  }
+
+  Process {
+    id: backlightDiscovery
+    command: ["sh", "-c", "p=$(ls -d /sys/class/backlight/*/brightness 2>/dev/null | head -1); [ -n \"$p\" ] && echo \"$p\" && cat \"${p%brightness}max_brightness\""]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const lines = text.trim().split("\n");
+        if (lines.length >= 2) {
+          const max = parseInt(lines[1]);
+          if (!isNaN(max) && max > 0) root.brightnessMax = max;
+          brightnessFile.path = lines[0];
+          brightnessReadProc.running = true;
+        }
+      }
+    }
   }
 
   Variants {
@@ -232,11 +283,126 @@ Scope {
           anchors.verticalCenter: parent.verticalCenter
           spacing: 8
 
+          // Volume
+          Rectangle {
+            height: 24
+            width: volContent.width + 12
+            radius: 12
+            color: root.theme.bgSurface
+
+            Accessible.role: Accessible.StaticText
+            Accessible.name: {
+              const sink = Pipewire.defaultAudioSink;
+              if (!sink || !sink.audio) return "Volume";
+              if (sink.audio.muted) return "Volume: muted";
+              return "Volume: " + Math.round(sink.audio.volume * 100) + "%";
+            }
+
+            Row {
+              id: volContent
+              anchors.centerIn: parent
+              spacing: 6
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: {
+                  const sink = Pipewire.defaultAudioSink;
+                  if (!sink || !sink.audio || sink.audio.muted || sink.audio.volume <= 0) return "󰖁";
+                  if (sink.audio.volume < 0.33) return "󰕿";
+                  if (sink.audio.volume < 0.66) return "󰖀";
+                  return "󰕾";
+                }
+                color: {
+                  const sink = Pipewire.defaultAudioSink;
+                  if (!sink || !sink.audio || sink.audio.muted) return root.theme.textMuted;
+                  return root.theme.accentPrimary;
+                }
+                font.pixelSize: 14
+                font.family: "Hack Nerd Font"
+              }
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: {
+                  const sink = Pipewire.defaultAudioSink;
+                  if (!sink || !sink.audio) return "–";
+                  if (sink.audio.muted) return "Mute";
+                  return Math.round(sink.audio.volume * 100) + "%";
+                }
+                color: root.theme.textPrimary
+                font.pixelSize: 11
+                font.family: "Hack Nerd Font"
+              }
+            }
+
+            MouseArea {
+              anchors.fill: parent
+              cursorShape: Qt.PointingHandCursor
+              acceptedButtons: Qt.LeftButton
+              onClicked: {
+                const sink = Pipewire.defaultAudioSink;
+                if (sink && sink.audio) sink.audio.muted = !sink.audio.muted;
+              }
+              onWheel: (wheel) => {
+                const sink = Pipewire.defaultAudioSink;
+                if (!sink || !sink.audio) return;
+                const delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                sink.audio.volume = Math.max(0, Math.min(1.5, sink.audio.volume + delta));
+              }
+            }
+          }
+
+          // Brightness
+          Rectangle {
+            height: 24
+            width: brightContent.width + 12
+            radius: 12
+            color: root.theme.bgSurface
+            visible: brightnessFile.path !== ""
+
+            Accessible.role: Accessible.StaticText
+            Accessible.name: "Brightness: " + Math.round(root.brightnessValue * 100) + "%"
+
+            Row {
+              id: brightContent
+              anchors.centerIn: parent
+              spacing: 6
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "󰃠"
+                color: root.theme.accentOrange
+                font.pixelSize: 14
+                font.family: "Hack Nerd Font"
+              }
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: Math.round(root.brightnessValue * 100) + "%"
+                color: root.theme.textPrimary
+                font.pixelSize: 11
+                font.family: "Hack Nerd Font"
+              }
+            }
+
+            MouseArea {
+              anchors.fill: parent
+              cursorShape: Qt.PointingHandCursor
+              onWheel: (wheel) => {
+                brightnessSetProc.command = wheel.angleDelta.y > 0
+                  ? ["brightnessctl", "set", "5%+"]
+                  : ["brightnessctl", "set", "5%-"];
+                brightnessSetProc.running = true;
+              }
+            }
+          }
+
           // System Info
           Row {
             id: sysInfo
 
             readonly property color batteryColor: {
+              if (SystemInfo.batteryCharging) return root.theme.accentGreen;
               if (SystemInfo.batteryLevelRaw > 20) return root.theme.batteryGood;
               if (SystemInfo.batteryLevelRaw > 10) return root.theme.batteryWarning;
               return root.theme.batteryCritical;
@@ -244,7 +410,7 @@ Scope {
 
             spacing: 4
 
-            // CPU
+            /* CPU
             Rectangle {
               height: 24
               width: cpuContent.width + 12
@@ -275,7 +441,7 @@ Scope {
               }
             }
 
-            // Memory
+            Memory
             Rectangle {
               height: 24
               width: memContent.width + 12
@@ -305,6 +471,7 @@ Scope {
                 }
               }
             }
+            */
 
             // Network
             Rectangle {
@@ -353,6 +520,14 @@ Scope {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
+                  visible: SystemInfo.batteryCharging
+                  text: "󱐋"
+                  color: root.theme.accentGreen
+                  font.pixelSize: 12
+                  font.family: "Hack Nerd Font"
+                }
+                Text {
+                  anchors.verticalCenter: parent.verticalCenter
                   text: SystemInfo.batteryIcon
                   color: sysInfo.batteryColor
                   font.pixelSize: 14
@@ -368,7 +543,7 @@ Scope {
               }
             }
 
-            // Temperature
+            /* Temperature
             Rectangle {
               height: 24
               width: tempContent.width + 12
@@ -398,6 +573,7 @@ Scope {
                 }
               }
             }
+            */
           }
 
           // System Tray

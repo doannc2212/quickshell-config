@@ -13,6 +13,7 @@ Singleton {
   property int batteryLevelRaw: 0
   property string batteryLevel: "0%"
   property string batteryIcon: "󰂎"
+  property bool batteryCharging: false
   property string temperature: "0°C"
 
   // CPU Usage
@@ -58,14 +59,18 @@ Singleton {
   // Battery
   Process {
     id: batteryProc
-    command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/capacity 2>/dev/null || echo '99'"]
+    command: ["sh", "-c", "printf '%s\\n%s' \"$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null || echo '99')\" \"$(cat /sys/class/power_supply/BAT*/status 2>/dev/null || echo 'Discharging')\""]
     running: true
 
     stdout: StdioCollector {
       onStreamFinished: {
-        const level = parseInt(text.trim())
+        const lines = text.trim().split("\n")
+        const level = parseInt(lines[0]) || 0
+        const status = (lines[1] || "Discharging").trim()
+
         root.batteryLevelRaw = level
         root.batteryLevel = level + "%"
+        root.batteryCharging = status === "Charging"
 
         // Set icon based on level
         if (level >= 90) root.batteryIcon = "󰁹"

@@ -30,7 +30,7 @@ Scope {
       required property var modelData
       screen: modelData
 
-      visible: notifColumn.children.length > 0
+      visible: NotificationService.notifications.length > 0
       focusable: false
       color: "transparent"
 
@@ -233,9 +233,9 @@ Scope {
                 }
 
                 Rectangle {
-                  Layout.preferredWidth: 48
-                  Layout.preferredHeight: 48
-                  radius: 6
+                  Layout.preferredWidth: 24
+                  Layout.preferredHeight: 24
+                  radius: 4
                   color: "transparent"
                   clip: true
                   visible: notifCard.notifImage !== ""
@@ -244,8 +244,8 @@ Scope {
                     anchors.fill: parent
                     source: notifCard.notifImage
                     fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: 48
-                    sourceSize.height: 48
+                    sourceSize.width: 24
+                    sourceSize.height: 24
                   }
                 }
               }
@@ -297,19 +297,6 @@ Scope {
                 }
               }
 
-              // Auto-close timer (decoupled from animation for reliability)
-              Timer {
-                id: autoCloseTimer
-                interval: {
-                  if (notifCard.notifUrgency === NotificationUrgency.Critical) return 0;
-                  if (notifCard.notifExpireTimeout > 0) return notifCard.notifExpireTimeout * 1000;
-                  return 5000;
-                }
-                running: notifCard.notifUrgency !== NotificationUrgency.Critical && interval > 0
-                repeat: false
-                onTriggered: if (notifCard.modelData) NotificationService.expire(notifCard.modelData)
-              }
-
               // Progress bar (visual only)
               Rectangle {
                 Layout.fillWidth: true
@@ -334,7 +321,7 @@ Scope {
                       target: progressBar
                       property: "width"
                       to: 0
-                      duration: autoCloseTimer.interval > 0 ? autoCloseTimer.interval : 5000
+                      duration: notifCard.notifExpireTimeout > 0 ? notifCard.notifExpireTimeout * 1000 : 5000
                     }
                   }
                 }
