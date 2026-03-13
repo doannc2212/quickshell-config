@@ -480,7 +480,11 @@ Scope {
               radius: 12
               color: root.theme.bgSurface
               Accessible.role: Accessible.StaticText
-              Accessible.name: "Network: " + SystemInfo.networkInfo
+              Accessible.name: {
+                if (SystemInfo.networkType === "ethernet") return "Network: Ethernet"
+                if (SystemInfo.networkType === "wifi") return "Network: WiFi " + SystemInfo.networkInfo
+                return "Network: Disconnected"
+              }
 
               Row {
                 id: netContent
@@ -489,8 +493,12 @@ Scope {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "󰛳"
-                  color: root.theme.accentGreen
+                  text: {
+                    if (SystemInfo.networkType === "ethernet") return "󰈀"
+                    if (SystemInfo.networkType === "wifi") return "󰖩"
+                    return "󰖪"
+                  }
+                  color: SystemInfo.networkType === "disconnected" ? root.theme.textMuted : root.theme.accentGreen
                   font.pixelSize: 14
                   font.family: "Hack Nerd Font"
                 }

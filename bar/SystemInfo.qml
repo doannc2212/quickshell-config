@@ -10,6 +10,7 @@ Singleton {
   property string cpuUsage: "0%"
   property string memoryUsage: "0%"
   property string networkInfo: "Disconnected"
+  property string networkType: "disconnected"
   property int batteryLevelRaw: 0
   property string batteryLevel: "0%"
   property string batteryIcon: "󰂎"
@@ -42,16 +43,20 @@ Singleton {
     }
   }
 
-  // Network Info
+  // Network Info (ethernet takes priority over wifi)
   Process {
     id: netProc
-    command: ["sh", "-c", "nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2"]
+    command: ["sh", "-c", "eth=$(nmcli -t -f type,state dev 2>/dev/null | grep '^ethernet:connected'); if [ -n \"$eth\" ]; then echo 'ethernet:Ethernet'; else wifi=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2); if [ -n \"$wifi\" ]; then echo \"wifi:$wifi\"; else echo 'disconnected:'; fi; fi"]
     running: true
 
     stdout: StdioCollector {
       onStreamFinished: {
-        const ssid = text.trim()
-        root.networkInfo = ssid || "Disconnected"
+        const result = text.trim()
+        const colonIdx = result.indexOf(':')
+        const type = result.substring(0, colonIdx)
+        const info = result.substring(colonIdx + 1)
+        root.networkType = type
+        root.networkInfo = info || "Disconnected"
       }
     }
   }
