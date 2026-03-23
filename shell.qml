@@ -14,6 +14,7 @@ import "theme-switcher"
 import "wallpaper"
 import "media"
 import "osd"
+import "monitor-manager"
 
 Scope {
   ThemeSwitcher { id: ts }
@@ -23,4 +24,5 @@ Scope {
   WallpaperManager { theme: ts.theme }
   MediaControl { theme: ts.theme }
   OSD { theme: ts.theme }
+  MonitorManager { theme: ts.theme }
 }

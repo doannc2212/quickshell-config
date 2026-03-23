@@ -26,6 +26,7 @@ https://github.com/user-attachments/assets/55c47c05-34b6-402c-aea7-42a369b86828
 | **OSD** | on-screen display for volume and brightness changes, auto-hides |
 | **Theme Switcher** | 206 themes across 6 families, persists across restarts |
 | **Wallpaper Manager** | grid picker for wallpapers, preview, supports hyprpaper and swww |
+| **Monitor Manager** | visual `hyprctl` front-end for arranging, scaling, rotating, mirroring, and disabling displays |
 
 ## prerequisites
 
@@ -41,6 +42,7 @@ optional, depending on which modules you use:
 - `nmcli` — for wifi network info in the bar
 - `/sys/class/power_supply/` — for battery info (standard on most laptops)
 - `hyprpaper` or `swww` — for the wallpaper manager
+- `hyprctl` / Hyprland — for the monitor manager
 
 ## installing everything
 
@@ -229,6 +231,32 @@ WallpaperManager {}
 ```
 bind = SUPER, W, exec, qs ipc call wallpaper toggle
 ```
+
+### monitor manager
+
+an ARandR-style visual monitor editor for Hyprland. it queries `hyprctl -j monitors all`, draws the current layout, and lets you adjust resolution, scale, rotation, position, mirroring, and enabled state before applying a batched `hyprctl keyword monitor ...` layout.
+
+1. copy `monitor-manager/` into your quickshell config directory
+2. in your `shell.qml`, add:
+
+```qml
+import "monitor-manager"
+
+MonitorManager {}
+```
+
+3. bind a key in `hyprland.conf`:
+
+```
+bind = SUPER, O, exec, qs ipc call monitors toggle
+bind = SUPER SHIFT, O, exec, qs ipc call monitors refresh
+```
+
+features:
+- visual layout canvas showing relative monitor placement
+- per-output resolution, scale, rotation, position, enable/disable, and mirror controls
+- quick placement actions inspired by `xrandr --left-of/--right-of/--above/--below`
+- live preview of the generated `hyprctl --batch` command before applying
 
 ## tweaking
 
