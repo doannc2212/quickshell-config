@@ -170,6 +170,8 @@ no IPC needed — it reacts automatically to PipeWire volume changes and backlig
 
 a theme picker overlay with 206 themes across 6 families. selected theme persists across restarts and syncs with kitty terminal and system dark/light mode.
 
+**extra dependencies:** `gnome-themes-extra`
+
 1. copy `theme-switcher/` into your quickshell config directory
 2. in your `shell.qml`, create the switcher and wire its theme into other modules:
 
@@ -189,6 +191,14 @@ ThemeSwitcher {
 
 ```
 bind = SUPER, T, exec, qs ipc call theme toggle
+```
+
+4. add this to your kitty config so the theme switcher can update kitty colors:
+
+```conf
+allow_remote_control yes
+listen_on unix:/tmp/kitty-{kitty_pid}
+include theme-colors.conf
 ```
 
 available theme families:
