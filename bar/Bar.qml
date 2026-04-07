@@ -410,68 +410,36 @@ Scope {
 
             spacing: 4
 
-            /* CPU
-            Rectangle {
-              height: 24
-              width: cpuContent.width + 12
-              radius: 12
-              color: root.theme.bgSurface
-              Accessible.role: Accessible.StaticText
-              Accessible.name: "CPU: " + SystemInfo.cpuUsage
-
-              Row {
-                id: cpuContent
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: "󰻠"
-                  color: root.theme.accentOrange
-                  font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
-                }
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: SystemInfo.cpuUsage
-                  color: root.theme.textPrimary
-                  font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
-                }
-              }
-            }
-
-            Memory
-            Rectangle {
-              height: 24
-              width: memContent.width + 12
-              radius: 12
-              color: root.theme.bgSurface
-              Accessible.role: Accessible.StaticText
-              Accessible.name: "Memory: " + SystemInfo.memoryUsage
-
-              Row {
-                id: memContent
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: "󰍛"
-                  color: root.theme.accentCyan
-                  font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
-                }
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: SystemInfo.memoryUsage
-                  color: root.theme.textPrimary
-                  font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
-                }
-              }
-            }
-            */
+            // CPU
+            // Rectangle {
+            //   height: 24
+            //   width: cpuContent.width + 12
+            //   radius: 12
+            //   color: root.theme.bgSurface
+            //   Accessible.role: Accessible.StaticText
+            //   Accessible.name: "CPU: " + SystemInfo.cpuUsage
+            //
+            //   Row {
+            //     id: cpuContent
+            //     anchors.centerIn: parent
+            //     spacing: 6
+            //
+            //     Text {
+            //       anchors.verticalCenter: parent.verticalCenter
+            //       text: "󰻠"
+            //       color: root.theme.accentOrange
+            //       font.pixelSize: 14
+            //       font.family: "Hack Nerd Font"
+            //     }
+            //     Text {
+            //       anchors.verticalCenter: parent.verticalCenter
+            //       text: SystemInfo.cpuUsage
+            //       color: root.theme.textPrimary
+            //       font.pixelSize: 11
+            //       font.family: "Hack Nerd Font"
+            //     }
+            //   }
+            // }
 
             // Network
             Rectangle {
@@ -551,37 +519,36 @@ Scope {
               }
             }
 
-            /* Temperature
-            Rectangle {
-              height: 24
-              width: tempContent.width + 12
-              radius: 12
-              color: root.theme.bgSurface
-              Accessible.role: Accessible.StaticText
-              Accessible.name: "Temperature: " + SystemInfo.temperature
-
-              Row {
-                id: tempContent
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: "󰔏"
-                  color: root.theme.accentRed
-                  font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
-                }
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: SystemInfo.temperature
-                  color: root.theme.textPrimary
-                  font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
-                }
-              }
-            }
-            */
+            // Temperature
+            // Rectangle {
+            //   height: 24
+            //   width: tempContent.width + 12
+            //   radius: 12
+            //   color: root.theme.bgSurface
+            //   Accessible.role: Accessible.StaticText
+            //   Accessible.name: "Temperature: " + SystemInfo.temperature
+            //
+            //   Row {
+            //     id: tempContent
+            //     anchors.centerIn: parent
+            //     spacing: 6
+            //
+            //     Text {
+            //       anchors.verticalCenter: parent.verticalCenter
+            //       text: "󰔏"
+            //       color: root.theme.accentRed
+            //       font.pixelSize: 14
+            //       font.family: "Hack Nerd Font"
+            //     }
+            //     Text {
+            //       anchors.verticalCenter: parent.verticalCenter
+            //       text: SystemInfo.temperature
+            //       color: root.theme.textPrimary
+            //       font.pixelSize: 11
+            //       font.family: "Hack Nerd Font"
+            //     }
+            //   }
+            // }
           }
 
           // System Tray
