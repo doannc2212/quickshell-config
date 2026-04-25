@@ -261,7 +261,7 @@ Scope {
         Item {
           anchors.centerIn: parent
           height: parent.height
-          width: Math.max(0, parent.width - leftSection.width - rightSection.width - 32)
+          width: Math.max(0, parent.width - 2 * Math.max(leftSection.width, rightSection.width) - 32)
 
           Text {
             Accessible.role: Accessible.StaticText
@@ -411,35 +411,35 @@ Scope {
             spacing: 4
 
             // CPU
-            // Rectangle {
-            //   height: 24
-            //   width: cpuContent.width + 12
-            //   radius: 12
-            //   color: root.theme.bgSurface
-            //   Accessible.role: Accessible.StaticText
-            //   Accessible.name: "CPU: " + SystemInfo.cpuUsage
-            //
-            //   Row {
-            //     id: cpuContent
-            //     anchors.centerIn: parent
-            //     spacing: 6
-            //
-            //     Text {
-            //       anchors.verticalCenter: parent.verticalCenter
-            //       text: "󰻠"
-            //       color: root.theme.accentOrange
-            //       font.pixelSize: 14
-            //       font.family: "Hack Nerd Font"
-            //     }
-            //     Text {
-            //       anchors.verticalCenter: parent.verticalCenter
-            //       text: SystemInfo.cpuUsage
-            //       color: root.theme.textPrimary
-            //       font.pixelSize: 11
-            //       font.family: "Hack Nerd Font"
-            //     }
-            //   }
-            // }
+            Rectangle {
+              height: 24
+              width: cpuContent.width + 12
+              radius: 12
+              color: root.theme.bgSurface
+              Accessible.role: Accessible.StaticText
+              Accessible.name: "CPU: " + SystemInfo.cpuUsage
+
+              Row {
+                id: cpuContent
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "󰻠"
+                  color: root.theme.accentOrange
+                  font.pixelSize: 14
+                  font.family: "Hack Nerd Font"
+                }
+                Text {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: SystemInfo.cpuUsage
+                  color: root.theme.textPrimary
+                  font.pixelSize: 11
+                  font.family: "Hack Nerd Font"
+                }
+              }
+            }
 
             // Network
             Rectangle {
