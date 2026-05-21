@@ -77,8 +77,8 @@ Singleton {
         root.batteryLevel = level + "%"
         root.batteryCharging = status === "Charging"
 
-        // Set icon based on level
-        if (level >= 90) root.batteryIcon = "󰁹"
+        if (root.batteryCharging) root.batteryIcon = ""
+        else if (level >= 90) root.batteryIcon = "󰁹"
         else if (level >= 80) root.batteryIcon = "󰂂"
         else if (level >= 70) root.batteryIcon = "󰂁"
         else if (level >= 60) root.batteryIcon = "󰂀"
