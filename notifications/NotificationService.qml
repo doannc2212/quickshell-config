@@ -14,7 +14,7 @@ Singleton {
 
     Component {
         id: notifDataComp
-        NotifData {}
+        NotificationData {}
     }
 
     NotificationServer {
