@@ -552,6 +552,9 @@ Scope {
           }
 
           // System Tray
+          // There's an issue that some tray not display correctly.
+          // https://github.com/quickshell-mirror/quickshell/issues/26
+          // https://github.com/quickshell-mirror/quickshell/pull/777
           Rectangle {
             implicitHeight: 24
             implicitWidth: trayIcons.implicitWidth + 4
