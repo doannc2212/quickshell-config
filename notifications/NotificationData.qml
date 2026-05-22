@@ -17,9 +17,11 @@ QtObject {
     property string image: ""
     property var    actions: []
     property int    urgency: NotificationUrgency.Normal
-    property real   expireTimeout: 5000
+    property real   expireTimeout: defaultTimeout
 
     property bool hovered: false
+
+    readonly property int defaultTimeout: 5000  // ms — fallback auto-dismiss when app sends -1/0
 
     readonly property Connections _conn: Connections {
         target: notificationData.notification
@@ -64,18 +66,11 @@ QtObject {
         running: !notificationData.closed
                  && !notificationData.hovered
                  && notificationData.urgency !== NotificationUrgency.Critical
-        interval: notificationData.expireTimeout > 0 ? notificationData.expireTimeout : 5000  // no * 1000: Quickshell passes raw D-Bus ms, not seconds
-        onRunningChanged: console.log("timer: ", notificationData.summary, "| running:", running,
-                              "| closed:", notificationData.closed,
-                              "| interval:", interval, "ms")
+        interval: notificationData.expireTimeout > 0 ? notificationData.expireTimeout : notificationData.defaultTimeout  // no * 1000: Quickshell passes raw D-Bus ms, not seconds
         onTriggered: {
             notificationData.dismiss()
         }
     }
-
-    onExpireTimeoutChanged: console.log("expireTimeout changed", summary,
-                                "| expireTimeout:", expireTimeout, "ms",
-                                "| timer interval will be:", (expireTimeout > 0 ? expireTimeout : 5000), "ms")
 
     Component.onCompleted: {
         if (!notification) return;
@@ -88,13 +83,13 @@ QtObject {
         urgency   = notification.urgency;
 
         const rawTimeout = notification.expireTimeout;
-        expireTimeout = rawTimeout > 0 ? rawTimeout : 5000;
+        expireTimeout = rawTimeout > 0 ? rawTimeout : defaultTimeout;
 
         console.log("[Noti created]", summary,
                     "| id:", notifId,
                     "| raw expireTimeout from notification:", rawTimeout, "ms",
                     "| computed expireTimeout:", expireTimeout, "ms",
-                    "| timer interval:", (expireTimeout > 0 ? expireTimeout : 5000), "ms",
+                    "| timer interval:", (expireTimeout > 0 ? expireTimeout : defaultTimeout), "ms",
                     "| timer running:", _timer.running)
 
         actions   = notification.actions.map(function(a) {
@@ -104,7 +99,6 @@ QtObject {
 
     function dismiss(): void {
         if (closed) return;
-        console.log("[Noti dismiss]", summary, "| seqId:", seqId)
         closed = true;
         NotificationService._remove(notificationData);
         if (notification) try { notification.dismiss(); } catch(e) {}

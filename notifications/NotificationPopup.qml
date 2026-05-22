@@ -307,7 +307,7 @@ Scope {
                                             to: 0
                                             duration: notifCard.modelData.expireTimeout > 0
                                                       ? notifCard.modelData.expireTimeout
-                                                      : 5000  // no * 1000: matches the timer — Quickshell passes raw D-Bus ms
+                                                      : notifCard.modelData.defaultTimeout  // no * 1000: matches the timer — Quickshell passes raw D-Bus ms
                                         }
                                     }
                                 }
