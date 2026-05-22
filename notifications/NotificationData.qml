@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell.Services.Notifications
 
 QtObject {
-    id: notifData
+    id: notificationData
 
     property Notification notification: null
     property bool closed: false
@@ -17,56 +17,65 @@ QtObject {
     property string image: ""
     property var    actions: []
     property int    urgency: NotificationUrgency.Normal
-    property real   expireTimeout: 5
+    property real   expireTimeout: 5000
 
     property bool hovered: false
 
     readonly property Connections _conn: Connections {
-        target: notifData.notification
+        target: notificationData.notification
 
         function onClosed(): void {
-            if (notifData.closed) return;
-            notifData.closed = true;
-            NotificationService._remove(notifData);
-            notifData.destroy();
+            if (notificationData.closed) return;
+            notificationData.closed = true;
+            NotificationService._remove(notificationData);
+            notificationData.destroy();
         }
 
         function onSummaryChanged(): void {
-            if (notifData.notification) notifData.summary = notifData.notification.summary || "";
+            if (notificationData.notification) notificationData.summary = notificationData.notification.summary || "";
         }
         function onBodyChanged(): void {
-            if (notifData.notification) notifData.body = notifData.notification.body || "";
+            if (notificationData.notification) notificationData.body = notificationData.notification.body || "";
         }
         function onAppIconChanged(): void {
-            if (notifData.notification) notifData.appIcon = notifData.notification.appIcon || "";
+            if (notificationData.notification) notificationData.appIcon = notificationData.notification.appIcon || "";
         }
         function onAppNameChanged(): void {
-            if (notifData.notification) notifData.appName = notifData.notification.appName || "";
+            if (notificationData.notification) notificationData.appName = notificationData.notification.appName || "";
         }
         function onImageChanged(): void {
-            if (notifData.notification) notifData.image = notifData.notification.image || "";
+            if (notificationData.notification) notificationData.image = notificationData.notification.image || "";
         }
         function onUrgencyChanged(): void {
-            if (notifData.notification) notifData.urgency = notifData.notification.urgency;
+            if (notificationData.notification) notificationData.urgency = notificationData.notification.urgency;
         }
         function onExpireTimeoutChanged(): void {
-            if (notifData.notification) notifData.expireTimeout = notifData.notification.expireTimeout;
+            if (notificationData.notification) notificationData.expireTimeout = notificationData.notification.expireTimeout;
         }
         function onActionsChanged(): void {
-            if (!notifData.notification) return;
-            notifData.actions = notifData.notification.actions.map(function(a) {
+            if (!notificationData.notification) return;
+            notificationData.actions = notificationData.notification.actions.map(function(a) {
                 return { identifier: a.identifier, text: a.text };
             });
         }
     }
 
     readonly property Timer _timer: Timer {
-        running: !notifData.closed
-                 && !notifData.hovered
-                 && notifData.urgency !== NotificationUrgency.Critical
-        interval: notifData.expireTimeout > 0 ? notifData.expireTimeout * 1000 : 5000
-        onTriggered: notifData.dismiss()
+        running: !notificationData.closed
+                 && !notificationData.hovered
+                 && notificationData.urgency !== NotificationUrgency.Critical
+        interval: notificationData.expireTimeout > 0 ? notificationData.expireTimeout : 5000  // no * 1000: Quickshell passes raw D-Bus ms, not seconds
+        onRunningChanged: console.log("timer: ", notificationData.summary, "| running:", running,
+                              "| closed:", notificationData.closed,
+                              "| interval:", interval, "ms")
+        onTriggered: {
+            notificationData.dismiss()
+        }
     }
+
+    onExpireTimeoutChanged: console.log("expireTimeout changed", summary,
+                                "| expireTimeout:", expireTimeout, "ms",
+                                "| timer interval will be:", (expireTimeout > 0 ? expireTimeout : 5000), "ms")
 
     Component.onCompleted: {
         if (!notification) return;
@@ -77,7 +86,17 @@ QtObject {
         appName   = notification.appName   || "";
         image     = notification.image     || "";
         urgency   = notification.urgency;
-        expireTimeout = notification.expireTimeout > 0 ? notification.expireTimeout : 5;
+
+        const rawTimeout = notification.expireTimeout;
+        expireTimeout = rawTimeout > 0 ? rawTimeout : 5000;
+
+        console.log("[Noti created]", summary,
+                    "| id:", notifId,
+                    "| raw expireTimeout from notification:", rawTimeout, "ms",
+                    "| computed expireTimeout:", expireTimeout, "ms",
+                    "| timer interval:", (expireTimeout > 0 ? expireTimeout : 5000), "ms",
+                    "| timer running:", _timer.running)
+
         actions   = notification.actions.map(function(a) {
             return { identifier: a.identifier, text: a.text };
         });
@@ -85,8 +104,9 @@ QtObject {
 
     function dismiss(): void {
         if (closed) return;
+        console.log("[Noti dismiss]", summary, "| seqId:", seqId)
         closed = true;
-        NotificationService._remove(notifData);
+        NotificationService._remove(notificationData);
         if (notification) try { notification.dismiss(); } catch(e) {}
         destroy();
     }
@@ -94,7 +114,7 @@ QtObject {
     function invokeAction(identifier): void {
         if (!identifier || closed) return;
         closed = true;
-        NotificationService._remove(notifData);
+        NotificationService._remove(notificationData);
         if (notification) {
             const action = notification.actions.find(function(a) {
                 return a.identifier === identifier;
