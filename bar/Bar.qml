@@ -496,14 +496,6 @@ Scope {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
-                  visible: SystemInfo.batteryCharging
-                  text: "󱐋"
-                  color: root.theme.accentGreen
-                  font.pixelSize: 12
-                  font.family: "Hack Nerd Font"
-                }
-                Text {
-                  anchors.verticalCenter: parent.verticalCenter
                   text: SystemInfo.batteryIcon
                   color: sysInfo.batteryColor
                   font.pixelSize: 14
