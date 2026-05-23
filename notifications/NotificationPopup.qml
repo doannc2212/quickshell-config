@@ -9,6 +9,7 @@ import QtQuick.Layouts
 Scope {
     id: root
     property var theme: DefaultTheme {}
+    property string font: "Hack Nerd Font"
 
     IpcHandler {
         target: "notifications"
@@ -149,7 +150,7 @@ Scope {
                                         color: notifCard.modelData.urgency === NotificationUrgency.Critical
                                                ? root.theme.urgencyCritical : root.theme.urgencyNormal
                                         font.pixelSize: 14
-                                        font.family: "Hack Nerd Font"
+                                        font.family: root.font
                                     }
                                 }
 
@@ -157,7 +158,7 @@ Scope {
                                     text: notifCard.modelData.appName || "Notification"
                                     color: root.theme.textMuted
                                     font.pixelSize: 11
-                                    font.family: "Hack Nerd Font"
+                                    font.family: root.font
                                     Layout.alignment: Qt.AlignVCenter
                                 }
 
@@ -177,7 +178,7 @@ Scope {
                                         text: "󰅖"
                                         color: closeHover.containsMouse ? root.theme.accentRed : root.theme.textMuted
                                         font.pixelSize: 12
-                                        font.family: "Hack Nerd Font"
+                                        font.family: root.font
                                     }
 
                                     MouseArea {
@@ -194,7 +195,7 @@ Scope {
                                 text: notifCard.modelData.summary
                                 color: root.theme.textPrimary
                                 font.pixelSize: 13
-                                font.family: "Hack Nerd Font"
+                                font.family: root.font
                                 font.bold: true
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
@@ -210,7 +211,7 @@ Scope {
                                     text: notifCard.modelData.body
                                     color: root.theme.textSecondary
                                     font.pixelSize: 12
-                                    font.family: "Hack Nerd Font"
+                                    font.family: root.font
                                     wrapMode: Text.Wrap
                                     maximumLineCount: 3
                                     elide: Text.ElideRight
@@ -267,7 +268,7 @@ Scope {
                                             text: actionBtn.modelData.text || ""
                                             color: root.theme.accentPrimary
                                             font.pixelSize: 11
-                                            font.family: "Hack Nerd Font"
+                                            font.family: root.font
                                         }
 
                                         MouseArea {

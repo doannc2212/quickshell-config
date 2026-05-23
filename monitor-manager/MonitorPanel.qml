@@ -9,6 +9,7 @@ Item {
   property var monitor:     null
   property var allMonitors: []
   required property var theme
+  required property string font
 
   signal modeSelected(string mode)
   signal scaleSelected(real scale)      // not scaleChanged — conflicts with Item.scale built-in
@@ -68,7 +69,7 @@ Item {
           Text {
             text: modelData.split("@")[0]
             color: modelData === (panel.monitor?.selectedMode ?? "") ? panel.theme.bgBase : panel.theme.textPrimary
-            font { pixelSize: 11; family: "Hack Nerd Font" }
+            font { pixelSize: 11; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - rateText.width
           }
@@ -76,7 +77,7 @@ Item {
             id: rateText
             text: "@" + (modelData.split("@")[1] ?? "")
             color: modelData === (panel.monitor?.selectedMode ?? "") ? panel.theme.bgBase : panel.theme.textMuted
-            font { pixelSize: 11; family: "Hack Nerd Font" }
+            font { pixelSize: 11; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
           }
         }
@@ -140,7 +141,7 @@ Item {
           color: modelData === (panel.monitor?.mirrorOf ?? "")
                  ? panel.theme.bgBase
                  : (modelData === "" ? panel.theme.textMuted : panel.theme.textPrimary)
-          font { pixelSize: 11; family: "Hack Nerd Font" }
+          font { pixelSize: 11; family: panel.font }
           verticalAlignment: Text.AlignVCenter
         }
 
@@ -173,13 +174,13 @@ Item {
         Layout.fillWidth: true
         text: panel.monitor?.name ?? ""
         color: panel.theme.textPrimary
-        font { pixelSize: 14; bold: true; family: "Hack Nerd Font" }
+        font { pixelSize: 14; bold: true; family: panel.font }
       }
       Text {
         Layout.fillWidth: true
         text: panel.monitor?.description ?? ""
         color: panel.theme.textMuted
-        font { pixelSize: 11; family: "Hack Nerd Font" }
+        font { pixelSize: 11; family: panel.font }
         elide: Text.ElideRight
       }
 
@@ -190,7 +191,7 @@ Item {
       Text {
         text: "Resolution"
         color: panel.theme.textSecondary
-        font { pixelSize: 11; family: "Hack Nerd Font" }
+        font { pixelSize: 11; family: panel.font }
       }
 
       // Collapsed mode pill
@@ -210,7 +211,7 @@ Item {
           Text {
             text: (panel.monitor?.selectedMode ?? "").replace("Hz", "")
             color: panel.theme.textPrimary
-            font { pixelSize: 12; family: "Hack Nerd Font" }
+            font { pixelSize: 12; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 20
             elide: Text.ElideRight
@@ -218,7 +219,7 @@ Item {
           Text {
             text: panel.modePickerOpen ? "▴" : "▾"
             color: panel.theme.textMuted
-            font { pixelSize: 16; family: "Hack Nerd Font" }
+            font { pixelSize: 16; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
           }
         }
@@ -244,7 +245,7 @@ Item {
       Text {
         text: "Scale"
         color: panel.theme.textSecondary
-        font { pixelSize: 11; family: "Hack Nerd Font" }
+        font { pixelSize: 11; family: panel.font }
       }
 
       Flow {
@@ -264,7 +265,7 @@ Item {
               anchors.centerIn: parent
               text: modelData + "×"
               color: Math.abs((panel.monitor?.scale ?? -1) - modelData) < 0.01 ? panel.theme.bgBase : panel.theme.textPrimary
-              font { pixelSize: 10; family: "Hack Nerd Font" }
+              font { pixelSize: 10; family: panel.font }
             }
 
             MouseArea {
@@ -283,7 +284,7 @@ Item {
       Text {
         text: "Rotation"
         color: panel.theme.textSecondary
-        font { pixelSize: 11; family: "Hack Nerd Font" }
+        font { pixelSize: 11; family: panel.font }
       }
 
       Row {
@@ -311,13 +312,13 @@ Item {
                 text: modelData.icon
                 anchors.verticalCenter: parent.verticalCenter
                 color: (panel.monitor?.transform ?? -1) === modelData.t ? panel.theme.bgBase : panel.theme.textMuted
-                font { pixelSize: 13; family: "Hack Nerd Font" }
+                font { pixelSize: 13; family: panel.font }
               }
               Text {
                 text: modelData.label
                 anchors.verticalCenter: parent.verticalCenter
                 color: (panel.monitor?.transform ?? -1) === modelData.t ? panel.theme.bgBase : panel.theme.textPrimary
-                font { pixelSize: 10; family: "Hack Nerd Font" }
+                font { pixelSize: 10; family: panel.font }
               }
             }
 
@@ -337,7 +338,7 @@ Item {
       Text {
         text: "Mirror of"
         color: panel.theme.textSecondary
-        font { pixelSize: 11; family: "Hack Nerd Font" }
+        font { pixelSize: 11; family: panel.font }
       }
 
       // Mirror collapsed pill
@@ -357,7 +358,7 @@ Item {
           Text {
             text: (panel.monitor?.mirrorOf ?? "") === "" ? "None" : (panel.monitor?.mirrorOf ?? "")
             color: (panel.monitor?.mirrorOf ?? "") === "" ? panel.theme.textMuted : panel.theme.textPrimary
-            font { pixelSize: 12; family: "Hack Nerd Font" }
+            font { pixelSize: 12; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 20
             elide: Text.ElideRight
@@ -365,7 +366,7 @@ Item {
           Text {
             text: panel.mirrorPickerOpen ? "▴" : "▾"
             color: panel.theme.textMuted
-            font { pixelSize: 16; family: "Hack Nerd Font" }
+            font { pixelSize: 16; family: panel.font }
             anchors.verticalCenter: parent.verticalCenter
           }
         }
@@ -403,13 +404,13 @@ Item {
             text: (panel.monitor?.disabled ?? true) ? "" : ""
             anchors.verticalCenter: parent.verticalCenter
             color: (panel.monitor?.disabled ?? true) ? panel.theme.textMuted : panel.theme.bgBase
-            font { pixelSize: 14; family: "Hack Nerd Font" }
+            font { pixelSize: 14; family: panel.font }
           }
           Text {
             text: (panel.monitor?.disabled ?? true) ? "Disabled" : "Enabled"
             anchors.verticalCenter: parent.verticalCenter
             color: (panel.monitor?.disabled ?? true) ? panel.theme.textMuted : panel.theme.bgBase
-            font { pixelSize: 12; bold: true; family: "Hack Nerd Font" }
+            font { pixelSize: 12; bold: true; family: panel.font }
           }
         }
 

@@ -6,6 +6,7 @@ Item {
   required property var monitors
   required property int selectedIndex
   required property var theme
+  required property string font
 
   property bool isDragging: false
 
@@ -139,7 +140,7 @@ Item {
       anchors { top: parent.top; left: parent.left; topMargin: 6; leftMargin: 10 }
       text: "Disabled"
       color: canvas.theme.textMuted
-      font { pixelSize: 10; family: "Hack Nerd Font" }
+      font { pixelSize: 10; family: canvas.font }
     }
   }
 
@@ -156,6 +157,7 @@ Item {
       monitor:  modelData
       selected: canvas.selectedIndex === index
       theme:    canvas.theme
+      font:     canvas.font
 
       // Hyprland places mirrored monitors at the same (x,y) as their source, so both tiles
       // land on the same canvas spot.  Sinking mirror tiles behind their source (z:0 vs z:1)
@@ -238,6 +240,7 @@ Item {
       index:    modelData.origIndex
       selected: canvas.selectedIndex === modelData.origIndex
       theme:    canvas.theme
+      font:     canvas.font
 
       x: 10 + modelData.col * 128   // left-to-right, 120px tile + 8px gap
       y: canvas.height - canvas._disabledStripH + 26   // 20px label row + 6px gap

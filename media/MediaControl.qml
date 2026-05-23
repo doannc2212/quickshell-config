@@ -9,6 +9,7 @@ import QtQuick.Layouts
 Scope {
   id: root
   property var theme: DefaultTheme {}
+  property string font: "Hack Nerd Font"
 
   property var activePlayer: {
     const players = Mpris.players.values;
@@ -111,7 +112,7 @@ Scope {
             text: "  No media playing"
             color: root.theme.textMuted
             font.pixelSize: 14
-            font.family: "Hack Nerd Font"
+            font.family: root.font
             horizontalAlignment: Text.AlignHCenter
             visible: root.activePlayer === null
           }
@@ -148,7 +149,7 @@ Scope {
                 text: "󰎆"
                 color: root.theme.textMuted
                 font.pixelSize: 40
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 visible: !root.activePlayer || root.activePlayer.trackArtUrl === ""
               }
             }
@@ -162,7 +163,7 @@ Scope {
                 text: root.activePlayer ? root.activePlayer.trackTitle : ""
                 color: root.theme.textPrimary
                 font.pixelSize: 15
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 font.bold: true
                 elide: Text.ElideRight
                 Layout.fillWidth: true
@@ -175,7 +176,7 @@ Scope {
                 text: root.activePlayer ? root.activePlayer.trackArtist : ""
                 color: root.theme.textSecondary
                 font.pixelSize: 13
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 visible: text !== ""
@@ -188,7 +189,7 @@ Scope {
                 text: root.activePlayer ? root.activePlayer.trackAlbum : ""
                 color: root.theme.textMuted
                 font.pixelSize: 12
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 visible: text !== ""
@@ -208,7 +209,7 @@ Scope {
                 }
                 color: root.theme.textMuted
                 font.pixelSize: 11
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 visible: text !== ""
               }
             }
@@ -263,7 +264,7 @@ Scope {
                 text: formatTime(root.activePlayer ? root.activePlayer.position : 0)
                 color: root.theme.textMuted
                 font.pixelSize: 10
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Item { Layout.fillWidth: true }
@@ -272,7 +273,7 @@ Scope {
                 text: formatTime(root.activePlayer ? root.activePlayer.length : 0)
                 color: root.theme.textMuted
                 font.pixelSize: 10
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
             }
           }
@@ -298,7 +299,7 @@ Scope {
                 text: "󰒮"
                 color: root.theme.textPrimary
                 font.pixelSize: 20
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               MouseArea {
@@ -325,7 +326,7 @@ Scope {
                 text: root.activePlayer && root.activePlayer.isPlaying ? "󰏤" : "󰐊"
                 color: root.theme.bgBase
                 font.pixelSize: 24
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               MouseArea {
@@ -350,7 +351,7 @@ Scope {
                 text: "󰒭"
                 color: root.theme.textPrimary
                 font.pixelSize: 20
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               MouseArea {
@@ -374,7 +375,7 @@ Scope {
                     root.activePlayer && root.activePlayer.volume < 0.5 ? "󰖀" : "󰕾"
               color: root.theme.textMuted
               font.pixelSize: 16
-              font.family: "Hack Nerd Font"
+              font.family: root.font
             }
 
             Rectangle {
@@ -408,7 +409,7 @@ Scope {
               text: Math.round((root.activePlayer ? root.activePlayer.volume : 0) * 100) + "%"
               color: root.theme.textMuted
               font.pixelSize: 10
-              font.family: "Hack Nerd Font"
+              font.family: root.font
             }
           }
         }

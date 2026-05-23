@@ -7,6 +7,7 @@ Item {
   required property int  index
   required property bool selected
   required property var  theme
+  required property string font
 
   // Use distinct param names (idx, not index) to avoid shadowing the required property
   // Drag boundary (canvas coordinates). Set by MonitorCanvas so tiles can't escape the canvas.
@@ -37,7 +38,7 @@ Item {
       font {
         pixelSize: Math.max(9, Math.min(13, root.width / 10))
         bold: true
-        family: "Hack Nerd Font"
+        family: root.font
       }
       elide: Text.ElideRight
       width: parent.width - 16
@@ -53,7 +54,7 @@ Item {
       color: root.theme.textSecondary
       font {
         pixelSize: Math.max(8, Math.min(11, root.width / 14))
-        family: "Hack Nerd Font"
+        family: root.font
       }
       horizontalAlignment: Text.AlignHCenter
       visible: root.width > 60
@@ -64,7 +65,7 @@ Item {
       anchors { bottom: parent.bottom; right: parent.right; margins: 6 }
       text: (["", "90°", "180°", "270°", "", "90°", "180°", "270°"])[root.monitor.transform] ?? ""
       color: root.theme.accentOrange
-      font { pixelSize: 9; family: "Hack Nerd Font" }
+      font { pixelSize: 9; family: root.font }
       visible: root.monitor.transform !== 0
     }
   }

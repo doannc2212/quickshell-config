@@ -8,6 +8,7 @@ Scope {
   id: root
 
   property var  theme: DefaultTheme {}
+  property string font: "Hack Nerd Font"
 
   property var  editState:       []
   property int  selectedIndex:   -1
@@ -273,7 +274,7 @@ Scope {
           Text {
             text: "󰍺  Monitor Manager"
             color: root.theme.accentPrimary
-            font { pixelSize: 14; bold: true; family: "Hack Nerd Font" }
+            font { pixelSize: 14; bold: true; family: root.font }
           }
 
           Item { Layout.fillWidth: true }
@@ -283,6 +284,7 @@ Scope {
             width: 28; height: 28
             circular:  true
             theme:     root.theme
+            font:      root.font
             icon:      "󰑐"
             iconColor: MonitorService.loading ? root.theme.textMuted : root.theme.textSecondary
             onClicked: MonitorService.refresh()
@@ -302,6 +304,7 @@ Scope {
             monitors:      root.editState
             selectedIndex: root.selectedIndex
             theme:         root.theme
+            font:          root.font
 
             onMonitorSelected: idx => root.selectedIndex = idx
             onMonitorMoved: (idx, nx, ny) => {
@@ -320,6 +323,7 @@ Scope {
             monitor:     visible ? root.editState[root.selectedIndex] : null
             allMonitors: root.editState
             theme:       root.theme
+            font:        root.font
 
             onModeSelected:     mode    => root.onModeSelected(mode)
             onScaleSelected:    scale   => root.onScaleChanged(scale)
@@ -347,14 +351,14 @@ Scope {
               Layout.fillWidth: true
               text: "Persistence disabled — add 'source = ~/.config/hypr/monitors.conf' to hyprland.conf."
               color: root.theme.accentOrange
-              font { pixelSize: 11; family: "Hack Nerd Font" }
+              font { pixelSize: 11; family: root.font }
               elide: Text.ElideRight
             }
 
             Text {
               text: "✕"
               color: root.theme.accentOrange
-              font { pixelSize: 11; family: "Hack Nerd Font" }
+              font { pixelSize: 11; family: root.font }
               MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -382,12 +386,13 @@ Scope {
               Layout.fillWidth: true
               text: "A display was connected or disconnected."
               color: root.theme.accentCyan
-              font { pixelSize: 11; family: "Hack Nerd Font" }
+              font { pixelSize: 11; family: root.font }
             }
 
             IconButton {
               height: 24; radius: 6
               theme:     root.theme
+              font:      root.font
               label:     "Ignore"
               iconSize:  11
               iconColor: root.theme.textPrimary
@@ -398,6 +403,7 @@ Scope {
             IconButton {
               height: 24; radius: 6
               theme:      root.theme
+              font:       root.font
               label:      "Reload layout"
               iconSize:   11
               iconColor:  root.theme.bgBase
@@ -438,14 +444,14 @@ Scope {
               Layout.fillWidth: true
               text: root.applyError
               color: root.theme.accentRed
-              font { pixelSize: 11; family: "Hack Nerd Font" }
+              font { pixelSize: 11; family: root.font }
               elide: Text.ElideRight
             }
 
             Text {
               text: "✕"
               color: root.theme.accentRed
-              font { pixelSize: 11; family: "Hack Nerd Font" }
+              font { pixelSize: 11; family: root.font }
               MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -464,27 +470,27 @@ Scope {
             spacing: 4
             Rectangle {
               width: hintDrag.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
-              Text { id: hintDrag; anchors.centerIn: parent; text: "drag"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+              Text { id: hintDrag; anchors.centerIn: parent; text: "drag"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font }
             }
-            Text { text: "arrange"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "arrange"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font; anchors.verticalCenter: parent.verticalCenter }
           }
 
           Row {
             spacing: 4
             Rectangle {
               width: hintClick.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
-              Text { id: hintClick; anchors.centerIn: parent; text: "click"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+              Text { id: hintClick; anchors.centerIn: parent; text: "click"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font }
             }
-            Text { text: "select"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "select"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font; anchors.verticalCenter: parent.verticalCenter }
           }
 
           Row {
             spacing: 4
             Rectangle {
               width: hintEsc.width + 8; height: 18; radius: 4; color: root.theme.bgSurface
-              Text { id: hintEsc; anchors.centerIn: parent; text: "esc"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font" }
+              Text { id: hintEsc; anchors.centerIn: parent; text: "esc"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font }
             }
-            Text { text: "close"; color: root.theme.textMuted; font.pixelSize: 10; font.family: "Hack Nerd Font"; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "close"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.font; anchors.verticalCenter: parent.verticalCenter }
           }
 
           Item { Layout.fillWidth: true }
@@ -493,7 +499,7 @@ Scope {
             visible: MonitorService.loading
             text: "󰑐  Loading…"
             color: root.theme.textMuted
-            font { pixelSize: 11; family: "Hack Nerd Font" }
+            font { pixelSize: 11; family: root.font }
           }
 
           Rectangle {
@@ -510,7 +516,7 @@ Scope {
               text: root.isApplying ? "Applying…" : "Apply"
               color: (root.isApplying || MonitorService.loading || root.hasOverlap)
                      ? root.theme.textMuted : root.theme.bgBase
-              font { pixelSize: 12; bold: true; family: "Hack Nerd Font" }
+              font { pixelSize: 12; bold: true; family: root.font }
             }
             MouseArea {
               anchors.fill: parent

@@ -6,6 +6,7 @@ Rectangle {
     id: root
 
     required property var   theme
+    required property string font
 
     property string icon:       ""
     property string label:      ""
@@ -32,7 +33,7 @@ Rectangle {
               ? root.icon + "  " + root.label
               : root.icon !== "" ? root.icon : root.label
         color: root.iconColor
-        font  { pixelSize: root.iconSize; bold: root.bold; family: "Hack Nerd Font" }
+        font  { pixelSize: root.iconSize; bold: root.bold; family: root.font }
     }
 
     MouseArea {

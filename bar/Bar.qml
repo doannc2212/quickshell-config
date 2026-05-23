@@ -10,6 +10,7 @@ import Quickshell.Services.Pipewire
 Scope {
   id: root
   property var theme: DefaultTheme {}
+  property string font: "Hack Nerd Font"
   property bool barVisible: true
 
   // MPRIS active player
@@ -123,7 +124,7 @@ Scope {
                 text: ""
                 color: root.theme.accentPrimary
                 font.pixelSize: 14
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Text {
@@ -131,7 +132,7 @@ Scope {
                 text: Time.timeString
                 color: root.theme.textPrimary
                 font.pixelSize: 12
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Text {
@@ -139,7 +140,7 @@ Scope {
                 text: Time.dateString
                 color: root.theme.textSecondary
                 font.pixelSize: 12
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
             }
           }
@@ -186,7 +187,7 @@ Scope {
                   text: wsPill.modelData.id
                   color: wsPill.modelData.focused ? root.theme.bgBase : root.theme.textPrimary
                   font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                   font.bold: wsPill.modelData.focused
                 }
 
@@ -230,7 +231,7 @@ Scope {
                 text: root.activePlayer && root.activePlayer.isPlaying ? "󰐊" : "󰏤"
                 color: root.theme.accentPrimary
                 font.pixelSize: 14
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Text {
@@ -243,7 +244,7 @@ Scope {
                 }
                 color: root.theme.textPrimary
                 font.pixelSize: 11
-                font.family: "Hack Nerd Font"
+                font.family: root.font
                 elide: Text.ElideRight
                 width: Math.min(implicitWidth, 200)
               }
@@ -269,7 +270,7 @@ Scope {
             text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
             color: root.theme.textPrimary
             font.pixelSize: 13
-            font.family: "Hack Nerd Font"
+            font.family: root.font
             elide: Text.ElideRight
             width: Math.min(implicitWidth, parent.width)
             anchors.centerIn: parent
@@ -318,7 +319,7 @@ Scope {
                   return root.theme.accentPrimary;
                 }
                 font.pixelSize: 14
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Text {
@@ -331,7 +332,7 @@ Scope {
                 }
                 color: root.theme.textPrimary
                 font.pixelSize: 11
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
             }
 
@@ -373,7 +374,7 @@ Scope {
                 text: "󰃠"
                 color: root.theme.accentOrange
                 font.pixelSize: 14
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
 
               Text {
@@ -381,7 +382,7 @@ Scope {
                 text: Math.round(root.brightnessValue * 100) + "%"
                 color: root.theme.textPrimary
                 font.pixelSize: 11
-                font.family: "Hack Nerd Font"
+                font.family: root.font
               }
             }
 
@@ -429,14 +430,14 @@ Scope {
                   text: "󰻠"
                   color: root.theme.accentOrange
                   font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
                   text: SystemInfo.cpuUsage
                   color: root.theme.textPrimary
                   font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
               }
             }
@@ -468,14 +469,14 @@ Scope {
                   }
                   color: SystemInfo.networkType === "disconnected" ? root.theme.textMuted : root.theme.accentGreen
                   font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
                   text: SystemInfo.networkInfo
                   color: root.theme.textPrimary
                   font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
               }
             }
@@ -499,14 +500,14 @@ Scope {
                   text: SystemInfo.batteryIcon
                   color: sysInfo.batteryColor
                   font.pixelSize: 14
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
                   text: SystemInfo.batteryLevel
                   color: root.theme.textPrimary
                   font.pixelSize: 11
-                  font.family: "Hack Nerd Font"
+                  font.family: root.font
                 }
               }
             }
@@ -530,14 +531,14 @@ Scope {
             //       text: "󰔏"
             //       color: root.theme.accentRed
             //       font.pixelSize: 14
-            //       font.family: "Hack Nerd Font"
+            //       font.family: root.font
             //     }
             //     Text {
             //       anchors.verticalCenter: parent.verticalCenter
             //       text: SystemInfo.temperature
             //       color: root.theme.textPrimary
             //       font.pixelSize: 11
-            //       font.family: "Hack Nerd Font"
+            //       font.family: root.font
             //     }
             //   }
             // }
