@@ -234,7 +234,7 @@ bind = SUPER, W, exec, qs ipc call wallpaper toggle
 
 ### monitor manager
 
-an ARandR-style visual monitor editor for Hyprland. it queries `hyprctl -j monitors all`, draws the current layout, and lets you adjust resolution, scale, rotation, position, mirroring, and enabled state before applying a batched `hyprctl keyword monitor ...` layout.
+an ARandR-style visual monitor editor for Hyprland. it queries `hyprctl -j monitors all`, draws the current layout, and lets you adjust resolution, scale, rotation, position, mirroring, and enabled state before applying a batched `hyprctl keyword monitor ...` layout. persists across reboots to `~/.config/hypr/monitors.conf`.
 
 1. copy `monitor-manager/` into your quickshell config directory
 2. in your `shell.qml`, add:
@@ -252,16 +252,20 @@ bind = SUPER, O, exec, qs ipc call monitors toggle
 bind = SUPER SHIFT, O, exec, qs ipc call monitors refresh
 ```
 
+4. add this line to your `hyprland.conf` so your layout is restored on login:
+
+```
+source = ~/.config/hypr/monitors.conf
+```
+
 features:
-- visual layout canvas showing relative monitor placement
+- visual layout canvas with drag-to-arrange monitors
 - per-output resolution, scale, rotation, position, enable/disable, and mirror controls
-- quick placement actions inspired by `xrandr --left-of/--right-of/--above/--below`
-- live preview of the generated `hyprctl --batch` command before applying
 
 ## tweaking
 
 - **colors** — all colors live in `theme-switcher/Theme.qml`. pick a theme via the switcher, or add your own by appending to the `themes` array.
-- **font** — search for `"Hack Nerd Font"` in the QML files and swap it with yours.
+- **font** — edit the default `font: "Your Font"` at the top of the entry file.   
 - **layout** — rearrange widgets in `bar/Bar.qml`.
 - **polling rate** — change the interval in `bar/SystemInfo.qml` (default 2s).
 - **extra bar widgets** — CPU, memory, and temperature widgets are already written in `bar/Bar.qml` but commented out. uncomment them if you'd like them back (requires `top`, `free`, and `sensors`).
