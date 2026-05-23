@@ -70,47 +70,41 @@ Item {
     radius: 8
   }
 
-  // Dot grid background
+  // Dot grid background — painted once into a 24×24 tile, then GPU-tiled across the
+  // canvas via Image.Tile.  Resizes don't re-run any JS; only theme changes repaint
+  // the single tile.
   Canvas {
-    id: gridCanvas
-    anchors.fill: parent
+    id: dotTile
+    width: 24
+    height: 24
+    visible: false
 
     property color dotColor: canvas.theme.textMuted
+    property string dataUrl: ""
 
-    onAvailableChanged: {
-      if (available) requestPaint();
-    }
-    onWidthChanged:  {
-      if (available) requestPaint();
-    }
-    onHeightChanged: {
-      if (available) requestPaint();
-    }
+    // https://doc.qt.io/qt-6/qtqml-syntax-objectattributes.html#property-change-signal-handlers
+    onAvailableChanged: if (available) requestPaint()
+    onDotColorChanged:  if (available) requestPaint()
 
     onPaint: {
       const ctx = getContext("2d");
-      if (!ctx) return; 
-
       ctx.clearRect(0, 0, width, height);
-
-      const fillStr = `rgba(${Math.round(dotColor.r * 255)}, ${Math.round(dotColor.g * 255)}, ${Math.round(dotColor.b * 255)}, 0.3)`;
-      ctx.fillStyle = fillStr;
-
-      const step = 24;
-      const r = 1.5;
-      // Center the grid so spacing is symmetric on all edges
-      const offX = (width  % step) / 2;
-      const offY = (height % step) / 2;
-      let count = 0;
-      for (let x = offX; x < width; x += step) {
-        for (let y = offY; y < height; y += step) {
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-          count++;
-        }
-      }
+      ctx.fillStyle = `rgba(${Math.round(dotColor.r * 255)}, ${Math.round(dotColor.g * 255)}, ${Math.round(dotColor.b * 255)}, 0.3)`;
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      dataUrl = toDataURL();
     }
+  }
+
+  Image {
+    anchors.fill: parent
+    source: dotTile.dataUrl
+    fillMode: Image.Tile
+    horizontalAlignment: Image.AlignHCenter
+    verticalAlignment: Image.AlignVCenter
+    smooth: false
+    visible: source !== ""
   }
 
   // Center crosshair
