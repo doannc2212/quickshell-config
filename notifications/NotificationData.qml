@@ -84,14 +84,6 @@ QtObject {
 
         const rawTimeout = notification.expireTimeout;
         expireTimeout = rawTimeout > 0 ? rawTimeout : defaultTimeout;
-
-        console.log("[Noti created]", summary,
-                    "| id:", notifId,
-                    "| raw expireTimeout from notification:", rawTimeout, "ms",
-                    "| computed expireTimeout:", expireTimeout, "ms",
-                    "| timer interval:", (expireTimeout > 0 ? expireTimeout : defaultTimeout), "ms",
-                    "| timer running:", _timer.running)
-
         actions   = notification.actions.map(function(a) {
             return { identifier: a.identifier, text: a.text };
         });
