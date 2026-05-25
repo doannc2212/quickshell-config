@@ -13,11 +13,12 @@ Item {
   signal monitorSelected(int index)
   signal monitorMoved(int index, real newX, real newY)
 
-  // Bounding box of all enabled monitors in logical px
+  function _onCanvas(m) { return !m.disabled && m.mirrorOf === ""; }
+
   readonly property real _minX: {
     let min = Infinity;
     for (const m of monitors) {
-      if (m.disabled) continue;
+      if (!_onCanvas(m)) continue;
       min = Math.min(min, m.x);
     }
     return isFinite(min) ? min : 0;
@@ -25,7 +26,7 @@ Item {
   readonly property real _minY: {
     let min = Infinity;
     for (const m of monitors) {
-      if (m.disabled) continue;
+      if (!_onCanvas(m)) continue;
       min = Math.min(min, m.y);
     }
     return isFinite(min) ? min : 0;
@@ -33,7 +34,7 @@ Item {
   readonly property real _totalW: {
     let max = 1;
     for (const m of monitors) {
-      if (m.disabled) continue;
+      if (!_onCanvas(m)) continue;
       max = Math.max(max, m.x + MonitorUtils.logicalW(m));
     }
     return Math.max(1, max - _minX);
@@ -41,28 +42,36 @@ Item {
   readonly property real _totalH: {
     let max = 1;
     for (const m of monitors) {
-      if (m.disabled) continue;
+      if (!_onCanvas(m)) continue;
       max = Math.max(max, m.y + MonitorUtils.logicalH(m));
     }
     return Math.max(1, max - _minY);
   }
 
-  // Reserve bottom strip for disabled monitors
-  readonly property int _disabledCount: {
+  // Bottom strip holds every monitor that isn't part of the arrangement
+  readonly property int _stripCount: {
     let n = 0;
-    for (const m of monitors) { if (m.disabled) n++; }
+    for (const m of monitors) { if (!_onCanvas(m)) n++; }
     return n;
   }
-  readonly property real _disabledStripH: _disabledCount > 0 ? 86 : 0
+  readonly property real _stripH: _stripCount > 0 ? 86 : 0
 
   readonly property real viewScale:
     Math.min((width - 80) / Math.max(_totalW, 1),
-             (height - 80 - _disabledStripH) / Math.max(_totalH, 1))
+             (height - 80 - _stripH) / Math.max(_totalH, 1))
 
   readonly property real originX: (width - _totalW * viewScale) / 2 - _minX * viewScale
-  readonly property real originY: (_disabledStripH === 0
+  readonly property real originY: (_stripH === 0
     ? (height - _totalH * viewScale) / 2
-    : (height - _disabledStripH - _totalH * viewScale) / 2) - _minY * viewScale
+    : (height - _stripH - _totalH * viewScale) / 2) - _minY * viewScale
+
+  function _mirroredBy(name) {
+    const r = [];
+    for (const m of monitors) {
+      if (!m.disabled && m.mirrorOf === name) r.push(m.name);
+    }
+    return r;
+  }
 
   // Canvas background
   Rectangle {
@@ -99,7 +108,11 @@ Item {
   }
 
   Image {
-    anchors.fill: parent
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.bottomMargin: canvas._stripH
     source: dotTile.dataUrl
     fillMode: Image.Tile
     horizontalAlignment: Image.AlignHCenter
@@ -126,25 +139,23 @@ Item {
     }
   }
 
-  // Disabled monitors strip separator
   Rectangle {
-    visible: canvas._disabledStripH > 0
+    visible: canvas._stripH > 0
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    height: canvas._disabledStripH
+    height: canvas._stripH
     radius: 8
     color: Qt.rgba(0, 0, 0, 0.15)
 
     Text {
       anchors { top: parent.top; left: parent.left; topMargin: 6; leftMargin: 10 }
-      text: "Disabled"
+      text: "Not in arrangement"
       color: canvas.theme.textMuted
       font { pixelSize: 10; family: canvas.font }
     }
   }
 
-  // Enabled monitor tiles
   Repeater {
     id: enabledTiles
     model: canvas.monitors
@@ -154,18 +165,13 @@ Item {
 
       required property var modelData
 
-      monitor:  modelData
-      selected: canvas.selectedIndex === index
-      theme:    canvas.theme
-      font:     canvas.font
+      monitor:    modelData
+      selected:   canvas.selectedIndex === index
+      theme:      canvas.theme
+      font:       canvas.font
+      mirroredBy: canvas._mirroredBy(modelData.name)
 
-      // Hyprland places mirrored monitors at the same (x,y) as their source, so both tiles
-      // land on the same canvas spot.  Sinking mirror tiles behind their source (z:0 vs z:1)
-      // keeps the source reachable by click; the mirror's cyan tint still peeks out at the
-      // edges when it's physically larger than the source.
-      z: modelData.mirrorOf !== "" ? 0 : 1
-
-      visible: !modelData.disabled
+      visible: canvas._onCanvas(modelData)
       x: canvas.originX + modelData.x * canvas.viewScale
       y: canvas.originY + modelData.y * canvas.viewScale
       width:  MonitorUtils.logicalW(modelData) * canvas.viewScale
@@ -175,11 +181,11 @@ Item {
       dragMinX: 0
       dragMinY: 0
       dragMaxX: canvas.width  - width
-      dragMaxY: canvas.height - canvas._disabledStripH - height
+      dragMaxY: canvas.height - canvas._stripH - height
 
       // Orange border warns the user that two independent monitors are misaligned — a gap
-      // or overlap that Hyprland will reject or mis-render.  Mirror pairs are intentionally
-      // co-located, so including them would permanently fire a false alarm.
+      // or overlap that Hyprland will reject or mis-render.  Only canvas-placed monitors
+      // are considered; disabled and mirroring outputs are excluded by definition.
       Rectangle {
         anchors.fill: parent
         color: "transparent"
@@ -188,10 +194,9 @@ Item {
         radius: 6
         visible: {
           for (let i = 0; i < canvas.monitors.length; i++) {
-            if (i === enabledTile.index || canvas.monitors[i].disabled) continue;
+            if (i === enabledTile.index) continue;
             const o = canvas.monitors[i];
-            // A mirror pair shares coordinates by design, not by user error — skip it
-            if (modelData.mirrorOf === o.name || o.mirrorOf === modelData.name) continue;
+            if (!canvas._onCanvas(o)) continue;
             if (MonitorUtils.overlapsAABB(
                   modelData.x, modelData.y, MonitorUtils.logicalW(modelData), MonitorUtils.logicalH(modelData),
                   o.x, o.y, MonitorUtils.logicalW(o), MonitorUtils.logicalH(o)))
@@ -200,15 +205,6 @@ Item {
           return false;
         }
         z: 2
-      }
-
-      // Semi-transparent tint when mirroring another monitor
-      Rectangle {
-        anchors.fill: parent
-        radius: 6
-        color: Qt.rgba(canvas.theme.accentCyan.r, canvas.theme.accentCyan.g, canvas.theme.accentCyan.b, 0.25)
-        visible: modelData.mirrorOf !== ""
-        z: 1
       }
 
       onClicked: canvas.monitorSelected(index)
@@ -220,17 +216,18 @@ Item {
     }
   }
 
-  // Disabled monitor tiles — shown in bottom strip
   Repeater {
-    id: disabledTiles
+    id: stripTiles
     model: {
-      const result = [];
-      let col = 0;
+      const mirrors  = [];
+      const disabled = [];
       for (let i = 0; i < canvas.monitors.length; i++) {
-        if (canvas.monitors[i].disabled)
-          result.push({ monitor: canvas.monitors[i], origIndex: i, col: col++ });
+        const m = canvas.monitors[i];
+        if (m.disabled)            disabled.push({ monitor: m, origIndex: i });
+        else if (m.mirrorOf !== "") mirrors.push({ monitor: m, origIndex: i });
       }
-      return result;
+      const all = mirrors.concat(disabled);
+      return all.map((e, col) => Object.assign({}, e, { col: col }));
     }
 
     delegate: MonitorTile {
@@ -243,12 +240,12 @@ Item {
       font:     canvas.font
 
       x: 10 + modelData.col * 128   // left-to-right, 120px tile + 8px gap
-      y: canvas.height - canvas._disabledStripH + 26   // 20px label row + 6px gap
+      y: canvas.height - canvas._stripH + 26   // 20px label row + 6px gap
       width: 120
       height: 52
 
       onClicked: idx => canvas.monitorSelected(idx)
-      onDragStarted: {}  // disabled tiles cannot be dragged (drag.target: null in MouseArea)
+      onDragStarted: {}
       onDragEnded: (idx, cx, cy) => {}
     }
   }
@@ -268,9 +265,11 @@ Item {
     if (!sx && Math.abs(lx) < T)      { lx = 0;   sx = true; }
     if (!sy && Math.abs(ly) < T)      { ly = 0;   sy = true; }
 
-    // Snap to adjacent monitor edges
+    // Snap to adjacent monitor edges — only against canvas-placed monitors;
+    // mirrors share coordinates with their source so snapping against them
+    // would be redundant noise.
     for (let i = 0; i < monitors.length; i++) {
-      if (i === index || monitors[i].disabled) continue;
+      if (i === index || !_onCanvas(monitors[i])) continue;
       const m  = monitors[i];
       const mW = MonitorUtils.logicalW(m);
       const mH = MonitorUtils.logicalH(m);
@@ -302,11 +301,8 @@ Item {
     for (let iter = 0; iter < monitors.length + 2; iter++) {
       let anyOverlap = false;
       for (let i = 0; i < monitors.length; i++) {
-        if (i === index || monitors[i].disabled) continue;
+        if (i === index || !_onCanvas(monitors[i])) continue;
         const o  = monitors[i];
-        // Snapping a mirror tile away from its source would break the mirror relationship;
-        // Hyprland requires them to stay at the same coordinates.
-        if (d.mirrorOf === o.name || o.mirrorOf === d.name) continue;
         const oW = MonitorUtils.logicalW(o);
         const oH = MonitorUtils.logicalH(o);
         if (!MonitorUtils.overlapsAABB(lx, ly, dW, dH, o.x, o.y, oW, oH)) continue;
