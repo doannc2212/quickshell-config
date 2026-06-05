@@ -1,0 +1,351 @@
+import QtQuick
+
+Item {
+  id: canvas
+
+  required property var monitors
+  required property int selectedIndex
+  required property var theme
+
+  property bool isDragging: false
+
+  signal monitorSelected(int index)
+  signal monitorMoved(int index, real newX, real newY)
+
+  // Bounding box of all enabled monitors in logical px
+  readonly property real _minX: {
+    let min = Infinity;
+    for (const m of monitors) {
+      if (m.disabled) continue;
+      min = Math.min(min, m.x);
+    }
+    return isFinite(min) ? min : 0;
+  }
+  readonly property real _minY: {
+    let min = Infinity;
+    for (const m of monitors) {
+      if (m.disabled) continue;
+      min = Math.min(min, m.y);
+    }
+    return isFinite(min) ? min : 0;
+  }
+  readonly property real _totalW: {
+    let max = 1;
+    for (const m of monitors) {
+      if (m.disabled) continue;
+      max = Math.max(max, m.x + MonitorUtils.logicalW(m));
+    }
+    return Math.max(1, max - _minX);
+  }
+  readonly property real _totalH: {
+    let max = 1;
+    for (const m of monitors) {
+      if (m.disabled) continue;
+      max = Math.max(max, m.y + MonitorUtils.logicalH(m));
+    }
+    return Math.max(1, max - _minY);
+  }
+
+  // Reserve bottom strip for disabled monitors
+  readonly property int _disabledCount: {
+    let n = 0;
+    for (const m of monitors) { if (m.disabled) n++; }
+    return n;
+  }
+  readonly property real _disabledStripH: _disabledCount > 0 ? 86 : 0
+
+  readonly property real viewScale:
+    Math.min((width - 80) / Math.max(_totalW, 1),
+             (height - 80 - _disabledStripH) / Math.max(_totalH, 1))
+
+  readonly property real originX: (width - _totalW * viewScale) / 2 - _minX * viewScale
+  readonly property real originY: (_disabledStripH === 0
+    ? (height - _totalH * viewScale) / 2
+    : (height - _disabledStripH - _totalH * viewScale) / 2) - _minY * viewScale
+
+  // Canvas background
+  Rectangle {
+    anchors.fill: parent
+    color: canvas.theme.bgSurface
+    radius: 8
+  }
+
+  // Dot grid background
+  Canvas {
+    id: gridCanvas
+    anchors.fill: parent
+
+    property color dotColor: canvas.theme.textMuted
+
+    onAvailableChanged: {
+      if (available) requestPaint();
+    }
+    onWidthChanged:  {
+      if (available) requestPaint();
+    }
+    onHeightChanged: {
+      if (available) requestPaint();
+    }
+
+    onPaint: {
+      const ctx = getContext("2d");
+      if (!ctx) return; 
+
+      ctx.clearRect(0, 0, width, height);
+
+      const fillStr = `rgba(${Math.round(dotColor.r * 255)}, ${Math.round(dotColor.g * 255)}, ${Math.round(dotColor.b * 255)}, 0.3)`;
+      ctx.fillStyle = fillStr;
+
+      const step = 24;
+      const r = 1.5;
+      // Center the grid so spacing is symmetric on all edges
+      const offX = (width  % step) / 2;
+      const offY = (height % step) / 2;
+      let count = 0;
+      for (let x = offX; x < width; x += step) {
+        for (let y = offY; y < height; y += step) {
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          count++;
+        }
+      }
+    }
+  }
+
+  // Center crosshair
+  Rectangle {
+    anchors.fill: parent
+    color: "transparent"
+    Rectangle {
+      anchors.centerIn: parent
+      width: parent.width; height: 1
+      color: canvas.theme.bgBorder
+      opacity: 0.4
+    }
+    Rectangle {
+      anchors.centerIn: parent
+      width: 1; height: parent.height
+      color: canvas.theme.bgBorder
+      opacity: 0.4
+    }
+  }
+
+  // Disabled monitors strip separator
+  Rectangle {
+    visible: canvas._disabledStripH > 0
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: canvas._disabledStripH
+    radius: 8
+    color: Qt.rgba(0, 0, 0, 0.15)
+
+    Text {
+      anchors { top: parent.top; left: parent.left; topMargin: 6; leftMargin: 10 }
+      text: "Disabled"
+      color: canvas.theme.textMuted
+      font { pixelSize: 10; family: "Hack Nerd Font" }
+    }
+  }
+
+  // Enabled monitor tiles
+  Repeater {
+    id: enabledTiles
+    model: canvas.monitors
+
+    delegate: MonitorTile {
+      id: enabledTile
+
+      required property var modelData
+
+      monitor:  modelData
+      selected: canvas.selectedIndex === index
+      theme:    canvas.theme
+
+      // Hyprland places mirrored monitors at the same (x,y) as their source, so both tiles
+      // land on the same canvas spot.  Sinking mirror tiles behind their source (z:0 vs z:1)
+      // keeps the source reachable by click; the mirror's cyan tint still peeks out at the
+      // edges when it's physically larger than the source.
+      z: modelData.mirrorOf !== "" ? 0 : 1
+
+      visible: !modelData.disabled
+      x: canvas.originX + modelData.x * canvas.viewScale
+      y: canvas.originY + modelData.y * canvas.viewScale
+      width:  MonitorUtils.logicalW(modelData) * canvas.viewScale
+      height: MonitorUtils.logicalH(modelData) * canvas.viewScale
+
+      // Clamp drag so tiles cannot leave the canvas area
+      dragMinX: 0
+      dragMinY: 0
+      dragMaxX: canvas.width  - width
+      dragMaxY: canvas.height - canvas._disabledStripH - height
+
+      // Orange border warns the user that two independent monitors are misaligned — a gap
+      // or overlap that Hyprland will reject or mis-render.  Mirror pairs are intentionally
+      // co-located, so including them would permanently fire a false alarm.
+      Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.color: canvas.theme.accentOrange
+        border.width: 2
+        radius: 6
+        visible: {
+          for (let i = 0; i < canvas.monitors.length; i++) {
+            if (i === enabledTile.index || canvas.monitors[i].disabled) continue;
+            const o = canvas.monitors[i];
+            // A mirror pair shares coordinates by design, not by user error — skip it
+            if (modelData.mirrorOf === o.name || o.mirrorOf === modelData.name) continue;
+            if (MonitorUtils.overlapsAABB(
+                  modelData.x, modelData.y, MonitorUtils.logicalW(modelData), MonitorUtils.logicalH(modelData),
+                  o.x, o.y, MonitorUtils.logicalW(o), MonitorUtils.logicalH(o)))
+              return true;
+          }
+          return false;
+        }
+        z: 2
+      }
+
+      // Semi-transparent tint when mirroring another monitor
+      Rectangle {
+        anchors.fill: parent
+        radius: 6
+        color: Qt.rgba(canvas.theme.accentCyan.r, canvas.theme.accentCyan.g, canvas.theme.accentCyan.b, 0.25)
+        visible: modelData.mirrorOf !== ""
+        z: 1
+      }
+
+      onClicked: canvas.monitorSelected(index)
+      onDragStarted: canvas.isDragging = true
+      onDragEnded: (idx, cx, cy) => {
+        canvas.isDragging = false;
+        canvas.snapAndCommit(idx, cx, cy);
+      }
+    }
+  }
+
+  // Disabled monitor tiles — shown in bottom strip
+  Repeater {
+    id: disabledTiles
+    model: {
+      const result = [];
+      let col = 0;
+      for (let i = 0; i < canvas.monitors.length; i++) {
+        if (canvas.monitors[i].disabled)
+          result.push({ monitor: canvas.monitors[i], origIndex: i, col: col++ });
+      }
+      return result;
+    }
+
+    delegate: MonitorTile {
+      required property var modelData
+
+      monitor:  modelData.monitor
+      index:    modelData.origIndex
+      selected: canvas.selectedIndex === modelData.origIndex
+      theme:    canvas.theme
+
+      x: 10 + modelData.col * 128   // left-to-right, 120px tile + 8px gap
+      y: canvas.height - canvas._disabledStripH + 26   // 20px label row + 6px gap
+      width: 120
+      height: 52
+
+      onClicked: idx => canvas.monitorSelected(idx)
+      onDragStarted: {}  // disabled tiles cannot be dragged (drag.target: null in MouseArea)
+      onDragEnded: (idx, cx, cy) => {}
+    }
+  }
+
+  function snapAndCommit(index, rawCanvasX, rawCanvasY) {
+    let lx = (rawCanvasX - originX) / viewScale;
+    let ly = (rawCanvasY - originY) / viewScale;
+
+    const d  = monitors[index]; // the dragged monitor
+    const dW = MonitorUtils.logicalW(d);
+    const dH = MonitorUtils.logicalH(d);
+    const T  = 20;  // snap threshold in logical pixels
+
+    let sx = false, sy = false;
+
+    // Snap to canvas origin
+    if (!sx && Math.abs(lx) < T)      { lx = 0;   sx = true; }
+    if (!sy && Math.abs(ly) < T)      { ly = 0;   sy = true; }
+
+    // Snap to adjacent monitor edges
+    for (let i = 0; i < monitors.length; i++) {
+      if (i === index || monitors[i].disabled) continue;
+      const m  = monitors[i];
+      const mW = MonitorUtils.logicalW(m);
+      const mH = MonitorUtils.logicalH(m);
+
+      if (!sx) {
+        if      (Math.abs(lx      - (m.x + mW)) < T) { lx = m.x + mW; sx = true; }
+        else if (Math.abs(lx + dW - m.x)         < T) { lx = m.x - dW; sx = true; }
+        else if (Math.abs(lx      - m.x)         < T) { lx = m.x;      sx = true; }
+      }
+      if (!sy) {
+        if      (Math.abs(ly      - (m.y + mH)) < T) { ly = m.y + mH; sy = true; }
+        else if (Math.abs(ly + dH - m.y)        < T) { ly = m.y - dH; sy = true; }
+        else if (Math.abs(ly      - m.y)        < T) { ly = m.y;      sy = true; }
+      }
+      if (sx && sy) break;
+    }
+
+    // Auto-snap to the nearest edge of any overlapping monitor.
+    //
+    //    Uses the same quadrant logic as placeSelected() in the old MonitorManager:
+    //    compare the dragged tile's center to the other tile's center to decide
+    //    left / right / above / below, then place flush against that edge.
+    //    If the preferred direction would result in a negative coordinate (invalid
+    //    in Hyprland), fall back to the opposite direction.
+    //
+    //    Each iteration resolves one overlap then restarts the scan (a snap may
+    //    create a new overlap with a third monitor).  Bounded by
+    //    (monitors.length + 2) to guarantee termination.
+    for (let iter = 0; iter < monitors.length + 2; iter++) {
+      let anyOverlap = false;
+      for (let i = 0; i < monitors.length; i++) {
+        if (i === index || monitors[i].disabled) continue;
+        const o  = monitors[i];
+        // Snapping a mirror tile away from its source would break the mirror relationship;
+        // Hyprland requires them to stay at the same coordinates.
+        if (d.mirrorOf === o.name || o.mirrorOf === d.name) continue;
+        const oW = MonitorUtils.logicalW(o);
+        const oH = MonitorUtils.logicalH(o);
+        if (!MonitorUtils.overlapsAABB(lx, ly, dW, dH, o.x, o.y, oW, oH)) continue;
+
+        // Center-to-center offset decides the intended placement direction.
+        const relX = (lx + dW / 2) - (o.x + oW / 2);
+        const relY = (ly + dH / 2) - (o.y + oH / 2);
+
+        if (Math.abs(relX) >= Math.abs(relY)) {
+          // Horizontal resolution — snap to o's right or left edge.
+          if (relX >= 0) {
+            lx = o.x + oW;                              // place to the right of o
+          } else {
+            const target = o.x - dW;
+            lx = target >= 0 ? target : o.x + oW;      // prefer left; fall back right
+          }
+        } else {
+          // Vertical resolution — snap to o's bottom or top edge.
+          if (relY >= 0) {
+            ly = o.y + oH;                              // place below o
+          } else {
+            const target = o.y - dH;
+            ly = target >= 0 ? target : o.y + oH;      // prefer above; fall back below
+          }
+        }
+
+        anyOverlap = true;
+        break; // restart scan so the new position is checked against all monitors
+      }
+      if (!anyOverlap) break;
+    }
+
+    // Clamp to non-negative coordinates (canvas bounding box assumes origin at 0,0).
+    lx = Math.max(0, lx);
+    ly = Math.max(0, ly);
+
+    canvas.monitorMoved(index, Math.round(lx), Math.round(ly));
+  }
+}
