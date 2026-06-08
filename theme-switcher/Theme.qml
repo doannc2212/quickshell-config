@@ -9,14 +9,23 @@ Singleton {
 
     property int currentIndex: 0
     property int previewIndex: -1
+    property bool wallpaperFeatureEnabled: true
+    property bool wallpaperMode: false
+    property var wallpaperTheme: ({})
     onPreviewIndexChanged: {
         if (previewIndex >= 0 && previewIndex < themes.length) {
             applyKittyTheme(themes[previewIndex]);
         } else {
-            applyKittyTheme(themes[currentIndex]);
+            applyKittyTheme(current);
         }
     }
-    readonly property var current: previewIndex >= 0 && previewIndex < themes.length ? themes[previewIndex] : themes[currentIndex]
+    readonly property var current: {
+        if (previewIndex >= 0 && previewIndex < themes.length)
+            return themes[previewIndex];
+        if (wallpaperMode && wallpaperTheme && wallpaperTheme.bgBase)
+            return wallpaperTheme;
+        return themes[currentIndex];
+    }
     readonly property int count: themes.length
     readonly property string currentName: current.name
     readonly property string currentFamily: current.family
@@ -79,15 +88,43 @@ Singleton {
         hyprlandProc.running = true;
     }
 
+    function applyTheme(t) {
+        applyKittyTheme(t);
+        applySystemColorScheme(!isLightColor(t.bgBase));
+        applyHyprlandBorders(t);
+    }
+
     function setTheme(index) {
         if (index >= 0 && index < themes.length) {
+            wallpaperMode = false;
             currentIndex = index;
             saveProc.command = ["sh", "-c", 'printf "%s" "$1" > "$HOME/.config/quickshell/theme.conf"', "sh", String(index)];
             saveProc.running = true;
-            applyKittyTheme(themes[index]);
-            applySystemColorScheme(!isLightColor(themes[index].bgBase));
-            applyHyprlandBorders(themes[index]);
+            applyTheme(themes[index]);
         }
+    }
+
+    function setWallpaperMode() {
+        if (!wallpaperFeatureEnabled)
+            return;
+        wallpaperMode = true;
+        saveProc.command = ["sh", "-c", 'printf "%s" wallpaper > "$HOME/.config/quickshell/theme.conf"'];
+        saveProc.running = true;
+        if (wallpaperTheme && wallpaperTheme.bgBase)
+            applyTheme(wallpaperTheme);
+    }
+
+    // Regenerate the wallpaper palette from a given image, then switch to wallpaper
+    // mode. set.sh writes wallpaper-theme.json, which the FileView below live-reloads
+    // and applies. Without an image this is equivalent to setWallpaperMode().
+    function setWallpaperFromImage(img) {
+        if (!wallpaperFeatureEnabled)
+            return;
+        if (img && img.length > 0) {
+            generateProc.command = ["sh", Quickshell.env("HOME") + "/.config/quickshell/theme-switcher/wallpaper-theme/set.sh", img];
+            generateProc.running = true;
+        }
+        setWallpaperMode();
     }
 
     function applyKittyTheme(t) {
@@ -157,6 +194,7 @@ Singleton {
     }
 
     Process { id: saveProc; running: false }
+    Process { id: generateProc; running: false }
     Process { id: kittyProc; running: false }
     Process { id: colorSchemeProc; running: false }
     Process { id: hyprlandProc; running: false }
@@ -167,13 +205,49 @@ Singleton {
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                const idx = parseInt(text.trim());
-                if (!isNaN(idx) && idx >= 0 && idx < root.themes.length) {
-                    root.currentIndex = idx;
-                    root.applyKittyTheme(root.themes[idx]);
-                    root.applySystemColorScheme(!root.isLightColor(root.themes[idx].bgBase));
-                    root.applyHyprlandBorders(root.themes[idx]);
+                const raw = text.trim();
+                if (raw === "wallpaper" && root.wallpaperFeatureEnabled) {
+                    root.wallpaperMode = true;
+                    if (root.wallpaperTheme && root.wallpaperTheme.bgBase)
+                        root.applyTheme(root.wallpaperTheme);
+                    else
+                        // wallpaper-theme.json missing/empty yet — show a visible
+                        // default until a wallpaper hook regenerates it (the FileView
+                        // re-applies once wallpaperTheme populates).
+                        root.applyTheme(root.themes[0]);
+                    return;
                 }
+                const idx = parseInt(raw);
+                if (!isNaN(idx) && idx >= 0 && idx < root.themes.length) {
+                    root.wallpaperMode = false;
+                    root.currentIndex = idx;
+                    root.applyTheme(root.themes[idx]);
+                } else if (raw === "wallpaper") {
+                    // Persisted wallpaper choice but the feature is disabled —
+                    // fall back to the curated default.
+                    root.wallpaperMode = false;
+                    root.applyTheme(root.themes[root.currentIndex]);
+                }
+            }
+        }
+    }
+
+    // Live-reloads the wallpaper-generated palette. When in wallpaper mode, a new
+    // wallpaper (and a fresh wallpaper-theme.json) repaints the shell instantly.
+    FileView {
+        id: wallpaperThemeFile
+        path: Quickshell.env("HOME") + "/.config/quickshell/theme-switcher/wallpaper-theme.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onTextChanged: {
+            const raw = wallpaperThemeFile.text();
+            if (!raw) return;
+            try {
+                root.wallpaperTheme = JSON.parse(raw);
+                if (root.wallpaperMode && root.wallpaperTheme.bgBase)
+                    root.applyTheme(root.wallpaperTheme);
+            } catch (e) {
+                console.error("Failed to parse wallpaper-theme.json:", e);
             }
         }
     }

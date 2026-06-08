@@ -1,0 +1,8 @@
+# matugen config that renders ONLY the quickshell wallpaper theme.
+# Used via `matugen image <img> -c this-file`, so it never touches your own
+# matugen setup.
+[config]
+
+[templates.quickshell]
+input_path = '~/.config/quickshell/theme-switcher/wallpaper-theme/matugen/template.json'
+output_path = '~/.config/quickshell/theme-switcher/wallpaper-theme.json'

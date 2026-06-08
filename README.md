@@ -1,5 +1,5 @@
 # my quickshell config
-a personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/). status bar, app launcher, notification daemon, media controls, OSD, wallpaper manager, and a theme switcher with 206 themes. each piece is its own module and works independently, so feel free to grab only the parts you need.
+a personal Hyprland desktop config built with [Quickshell](https://quickshell.outfoxxed.me/). status bar, app launcher, notification daemon, OSD, wallpaper manager, and a theme switcher with 206 themes. each piece is its own module and works independently, so feel free to grab only the parts you need.
 
 i hope it's helpful as a starting point or reference. if you have questions or ide
 
@@ -22,9 +22,8 @@ https://github.com/user-attachments/assets/55c47c05-34b6-402c-aea7-42a369b86828
 | **Bar** | clock, workspaces, active window title, volume, brightness, network, battery, system tray, now-playing indicator |
 | **App Launcher** | rofi drun-style application launcher |
 | **Notifications** | dunst-style notification daemon with popups |
-| **Media Control** | popup overlay with album art, playback controls, progress bar, and volume slider |
 | **OSD** | on-screen display for volume and brightness changes, auto-hides |
-| **Theme Switcher** | 206 themes across 6 families, persists across restarts |
+| **Theme Switcher** | 206 themes across 6 families, persists across restarts, or follow your wallpaper |
 | **Wallpaper Manager** | grid picker for wallpapers, preview, supports hyprpaper and swww |
 | **Monitor Manager** | visual `hyprctl` front-end for arranging, scaling, rotating, mirroring, and disabling displays |
 
@@ -42,6 +41,7 @@ optional, depending on which modules you use:
 - `nmcli` — for wifi network info in the bar
 - `/sys/class/power_supply/` — for battery info (standard on most laptops)
 - `hyprpaper` or `swww` — for the wallpaper manager
+- `matugen` or `wallust` — for generating a theme from your wallpaper
 - `hyprctl` / Hyprland — for the monitor manager
 
 ## installing everything
@@ -131,26 +131,6 @@ features:
 - max 5 visible notifications at a time
 - do not disturb mode
 
-### media control
-
-a popup overlay that shows the active MPRIS player with album art, track info, playback controls, a seekable progress bar, and a volume slider.
-
-1. copy `media/` into your quickshell config directory
-2. in your `shell.qml`, add:
-
-```qml
-import "media"
-
-MediaControl {}
-```
-
-3. bind keys in `hyprland.conf`:
-
-```
-bind = SUPER, M, exec, qs ipc call media toggle
-bind = , XF86AudioPlay, exec, qs ipc call media play_pause
-```
-
 ### osd
 
 a vertical pill overlay that appears on the right side of the screen when volume or brightness changes, then auto-hides after 1.5 seconds.
@@ -210,6 +190,22 @@ available theme families:
 - **Arc** — Dark, Light
 - **Beared** — Arc, Surprising Eggplant, Oceanic, Solarized Dark, Coffee, Monokai Stone, Vivid Black
 - **MonkeyType** — 187 community themes
+
+#### theme from wallpaper
+
+the switcher can generate a theme from an image instead of using a curated one.
+
+**extra dependencies:** [`matugen`](https://github.com/InioX/matugen) *or* [`wallust`](https://codeberg.org/explosion-mental/wallust) — auto-detected (force one with `WALLPAPER_THEME_TOOL=matugen|wallust`).
+
+generate a palette from an image and switch to it:
+
+```
+qs ipc call theme wallpaper /path/to/image.png
+```
+
+wallpaper mode persists across restarts and repaints the bar, launcher, notifications, kitty, and Hyprland borders. picking any curated theme in the switcher drops back out (the switcher's wallpaper toggle re-enters using the last palette).
+
+generated palettes follow the image, so a low-contrast wallpaper may look flatter than the hand-tuned themes.
 
 ### wallpaper manager
 

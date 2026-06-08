@@ -1,0 +1,17 @@
+{
+  "name": "Wallpaper",
+  "family": "Dynamic",
+  "bgBase": "{{colors.background.default.hex}}",
+  "bgSurface": "{{colors.surface_container.default.hex}}",
+  "bgHover": "{{colors.surface_container_high.default.hex}}",
+  "bgSelected": "{{colors.surface_container_highest.default.hex}}",
+  "bgBorder": "{{colors.outline_variant.default.hex}}",
+  "textPrimary": "{{colors.on_surface.default.hex}}",
+  "textSecondary": "{{colors.on_surface_variant.default.hex}}",
+  "textMuted": "{{colors.outline.default.hex}}",
+  "accentPrimary": "{{colors.primary.default.hex}}",
+  "accentCyan": "{{colors.tertiary.default.hex}}",
+  "accentGreen": "{{colors.secondary.default.hex}}",
+  "accentOrange": "{{colors.primary.default.hex}}",
+  "accentRed": "{{colors.error.default.hex}}"
+}

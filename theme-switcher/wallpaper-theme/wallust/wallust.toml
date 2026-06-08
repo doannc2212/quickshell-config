@@ -1,0 +1,10 @@
+# Minimal wallust config that renders ONLY the quickshell wallpaper theme.
+# Used via `wallust run <img> -d this-dir`, so it never touches your own
+# wallust setup.
+backend = "fastresize"
+color_space = "labmixed"
+
+[templates]
+quickshell.template = "quickshell.json"
+quickshell.target = '~/.config/quickshell/theme-switcher/wallpaper-theme.json'
+quickshell.new_engine = true

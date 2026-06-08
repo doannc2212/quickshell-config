@@ -1,0 +1,17 @@
+{
+  "name": "Wallpaper",
+  "family": "Dynamic",
+  "bgBase": "{{background}}",
+  "bgSurface": "{{color0}}",
+  "bgHover": "{{color0}}",
+  "bgSelected": "{{color8}}",
+  "bgBorder": "{{color8}}",
+  "textPrimary": "{{foreground}}",
+  "textSecondary": "{{color7}}",
+  "textMuted": "{{color8}}",
+  "accentPrimary": "{{color4}}",
+  "accentCyan": "{{color6}}",
+  "accentGreen": "{{color2}}",
+  "accentOrange": "{{color3}}",
+  "accentRed": "{{color1}}"
+}
