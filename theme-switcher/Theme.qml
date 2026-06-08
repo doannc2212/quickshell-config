@@ -238,16 +238,26 @@ Singleton {
         id: wallpaperThemeFile
         path: Quickshell.env("HOME") + "/.config/quickshell/theme-switcher/wallpaper-theme.json"
         watchChanges: true
-        onFileChanged: reload()
+
+        // True only for live, on-disk rewrites (set.sh executed) — not the initial
+        // load at startup. A fresh palette means a new wallpaper was set, so we
+        // switch the switcher into wallpaper mode rather than just repainting.
+        property bool liveChange: false
+        onFileChanged: { liveChange = true; reload(); }
+
         onTextChanged: {
             const raw = wallpaperThemeFile.text();
             if (!raw) return;
             try {
                 root.wallpaperTheme = JSON.parse(raw);
-                if (root.wallpaperMode && root.wallpaperTheme.bgBase)
+                if (wallpaperThemeFile.liveChange && root.wallpaperTheme.bgBase)
+                    root.setWallpaperMode();
+                else if (root.wallpaperMode && root.wallpaperTheme.bgBase)
                     root.applyTheme(root.wallpaperTheme);
             } catch (e) {
                 console.error("Failed to parse wallpaper-theme.json:", e);
+            } finally {
+                wallpaperThemeFile.liveChange = false;
             }
         }
     }
