@@ -18,7 +18,7 @@ Scope {
       launcherPanel.visible = !launcherPanel.visible
       if (launcherPanel.visible) {
         searchInput.text = ""
-        selectedIndex = 0
+        selectedIndex = -1
         searchInput.forceActiveFocus()
       }
     }
@@ -158,7 +158,7 @@ Scope {
                 verticalAlignment: Text.AlignVCenter
               }
 
-              onTextChanged: root.selectedIndex = 0
+              onTextChanged: root.selectedIndex = text === "" ? -1 : 0
 
               Keys.onEscapePressed: launcherPanel.visible = false
 
@@ -173,7 +173,7 @@ Scope {
                   resultsList.positionViewAtIndex(root.selectedIndex, ListView.Contain);
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                   event.accepted = true;
-                  if (resultsList.count > 0) {
+                  if (root.selectedIndex >= 0) {
                     const entry = filteredApps.values[root.selectedIndex];
                     if (entry) root.launchApp(entry);
                   }
@@ -211,6 +211,7 @@ Scope {
           highlight: Rectangle {
             radius: 8
             color: root.theme.bgSelected
+            visible: root.selectedIndex >= 0
 
             Rectangle {
               width: 3
@@ -234,11 +235,7 @@ Scope {
             width: resultsList.width
             height: 44
             radius: 8
-            color: hoverArea.containsMouse && root.selectedIndex !== index ? root.theme.bgHover : "transparent"
-
-            Behavior on color {
-              ColorAnimation { duration: 100 }
-            }
+            color: "transparent"
 
             RowLayout {
               anchors.fill: parent
@@ -298,12 +295,11 @@ Scope {
             }
 
             MouseArea {
-              id: hoverArea
               anchors.fill: parent
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onClicked: root.launchApp(delegateRoot.modelData)
-              onEntered: root.selectedIndex = delegateRoot.index
+              onPositionChanged: root.selectedIndex = delegateRoot.index
             }
           }
 
