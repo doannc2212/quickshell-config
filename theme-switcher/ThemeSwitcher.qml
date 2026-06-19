@@ -47,7 +47,7 @@ Scope {
     property string searchText: ""
 
     onSelectedIndexChanged: {
-        if (themePanel.visible && filteredThemes.length > 0 && selectedIndex >= 0 && selectedIndex < filteredThemes.length) {
+        if (themePanel.visible && !root.theme.wallpaperMode && filteredThemes.length > 0 && selectedIndex >= 0 && selectedIndex < filteredThemes.length) {
             root.theme.previewIndex = filteredThemes[selectedIndex].originalIndex;
         }
     }
