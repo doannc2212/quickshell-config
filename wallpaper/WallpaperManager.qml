@@ -12,6 +12,12 @@ Scope {
   property string searchText: ""
   property string previewPath: ""
 
+  function applyWallpaper(path) {
+    WallpaperService.setWallpaper(path);
+    if (root.theme.wallpaperMode && typeof root.theme.setWallpaperFromImage === "function")
+      root.theme.setWallpaperFromImage(path);
+  }
+
   IpcHandler {
     target: "wallpaper"
 
@@ -293,7 +299,7 @@ Scope {
                   if (mouse.button === Qt.RightButton) {
                     root.previewPath = modelData;
                   } else {
-                    WallpaperService.setWallpaper(modelData);
+                    root.applyWallpaper(modelData);
                   }
                 }
               }
@@ -403,7 +409,7 @@ Scope {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            WallpaperService.setWallpaper(root.previewPath);
+            root.applyWallpaper(root.previewPath);
             root.previewPath = "";
           }
         }
